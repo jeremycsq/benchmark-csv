@@ -14,22 +14,25 @@ export const useGlobalFiltersStore = defineStore('globalFilters', () => {
   // Options pour les selects
   const monthOptions = computed(() => [
     { label: 'All Months', value: 'All Months' },
-    ...filterOptions.value.analysis_months.map((month) => ({ label: month, value: month })),
+    ...filterOptions.value.analysis_months.map((month: string) => ({ label: month, value: month })),
   ])
 
   const countryOptions = computed(() => [
     { label: 'All Countries', value: 'All Countries' },
-    ...filterOptions.value.countries.map((country) => ({ label: country, value: country })),
+    ...filterOptions.value.countries.map((country: string) => ({ label: country, value: country })),
   ])
 
   const industryOptions = computed(() => [
     { label: 'All Industries', value: 'All Industries' },
-    ...filterOptions.value.industries.map((industry) => ({ label: industry, value: industry })),
+    ...filterOptions.value.industries.map((industry: string) => ({
+      label: industry,
+      value: industry,
+    })),
   ])
 
   const deviceOptions = computed(() => [
     { label: 'All Devices', value: 'All Devices' },
-    ...filterOptions.value.devices.map((device) => ({ label: device, value: device })),
+    ...filterOptions.value.devices.map((device: string) => ({ label: device, value: device })),
   ])
 
   function setMonth(month: string) {

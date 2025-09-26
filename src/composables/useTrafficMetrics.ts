@@ -57,13 +57,13 @@ export function useTrafficMetrics() {
 
     // Calcul des moyennes
     const avgMobileShare =
-      filteredData.value.reduce((sum, item) => sum + item.mobile_share, 0) /
+      filteredData.value.reduce((sum: number, item: any) => sum + item.mobile_share, 0) /
       filteredData.value.length
     const avgNewVisitorRate =
-      filteredData.value.reduce((sum, item) => sum + item.new_visitor_rate, 0) /
+      filteredData.value.reduce((sum: number, item: any) => sum + item.new_visitor_rate, 0) /
       filteredData.value.length
     const avgPaidTrafficShare =
-      filteredData.value.reduce((sum, item) => sum + item.paid_traffic_share, 0) /
+      filteredData.value.reduce((sum: number, item: any) => sum + item.paid_traffic_share, 0) /
       filteredData.value.length
 
     return {
@@ -91,15 +91,16 @@ export function useTrafficMetrics() {
 
     // Moyenne des changements YoY
     const avgYoyChange =
-      filteredData.value.reduce((sum, item) => sum + item.yoy_change, 0) / filteredData.value.length
+      filteredData.value.reduce((sum: number, item: any) => sum + item.yoy_change, 0) /
+      filteredData.value.length
     const avgMobileYoyChange =
-      filteredData.value.reduce((sum, item) => sum + item.mobile_yoy_change, 0) /
+      filteredData.value.reduce((sum: number, item: any) => sum + item.mobile_yoy_change, 0) /
       filteredData.value.length
     const avgNewVisitorYoyChange =
-      filteredData.value.reduce((sum, item) => sum + item.new_visitor_yoy_change, 0) /
+      filteredData.value.reduce((sum: number, item: any) => sum + item.new_visitor_yoy_change, 0) /
       filteredData.value.length
     const avgPaidTrafficYoyChange =
-      filteredData.value.reduce((sum, item) => sum + item.paid_traffic_yoy_change, 0) /
+      filteredData.value.reduce((sum: number, item: any) => sum + item.paid_traffic_yoy_change, 0) /
       filteredData.value.length
 
     return {
@@ -127,7 +128,7 @@ export function useTrafficMetrics() {
 
     // Extraire les données des champs JSON
     const channelData = filteredData.value
-      .map((item) => item.traffic_share_by_channel)
+      .map((item: any) => item.traffic_share_by_channel)
       .filter(Boolean)
 
     if (!channelData.length) {
@@ -154,12 +155,12 @@ export function useTrafficMetrics() {
 
     channels.forEach((channel) => {
       const values = channelData
-        .map((data) => data[channel])
-        .filter((value) => typeof value === 'number')
+        .map((data: any) => data[channel])
+        .filter((value: any) => typeof value === 'number')
 
       if (values.length > 0) {
         result[channel] = Math.round(
-          (values.reduce((sum, val) => sum + val, 0) / values.length) * 100,
+          (values.reduce((sum: number, val: number) => sum + val, 0) / values.length) * 100,
         )
       } else {
         result[channel] = 0
@@ -175,7 +176,9 @@ export function useTrafficMetrics() {
       return []
     }
 
-    const channelData = filteredData.value.map((item) => item.channel_yoy_changes).filter(Boolean)
+    const channelData = filteredData.value
+      .map((item: any) => item.channel_yoy_changes)
+      .filter(Boolean)
 
     if (!channelData.length) {
       return []
@@ -192,11 +195,13 @@ export function useTrafficMetrics() {
 
     return channels.map((channel) => {
       const values = channelData
-        .map((data) => data[channel.key])
-        .filter((value) => typeof value === 'number')
+        .map((data: any) => data[channel.key])
+        .filter((value: any) => typeof value === 'number')
 
       const avgChange =
-        values.length > 0 ? values.reduce((sum, val) => sum + val, 0) / values.length : 0
+        values.length > 0
+          ? values.reduce((sum: number, val: number) => sum + val, 0) / values.length
+          : 0
 
       return {
         label: channel.label,
@@ -210,7 +215,10 @@ export function useTrafficMetrics() {
   const avgDailyTraffic = computed(() => {
     if (!filteredData.value.length) return 0
 
-    const total = filteredData.value.reduce((sum, item) => sum + item.avg_daily_traffic, 0)
+    const total = filteredData.value.reduce(
+      (sum: number, item: any) => sum + item.avg_daily_traffic,
+      0,
+    )
     return Math.round(total / filteredData.value.length)
   })
 
@@ -218,7 +226,10 @@ export function useTrafficMetrics() {
   const avgPercentileRank = computed(() => {
     if (!filteredData.value.length) return 0
 
-    const total = filteredData.value.reduce((sum, item) => sum + item.percentile_rank, 0)
+    const total = filteredData.value.reduce(
+      (sum: number, item: any) => sum + item.percentile_rank,
+      0,
+    )
     return Math.round(total / filteredData.value.length)
   })
 
@@ -233,7 +244,7 @@ export function useTrafficMetrics() {
 
     // Grouper par mois d'analyse et calculer les moyennes
     const monthlyData = filteredData.value.reduce(
-      (acc, item) => {
+      (acc: any, item: any) => {
         if (!acc[item.analysis_month]) {
           acc[item.analysis_month] = []
         }
@@ -249,19 +260,22 @@ export function useTrafficMetrics() {
     // Calculer les moyennes pour chaque métrique
     const mobileData = labels.map((month) => {
       const items = monthlyData[month]
-      const avg = items.reduce((sum, item) => sum + item.mobile_share, 0) / items.length
+      const avg =
+        items.reduce((sum: number, item: any) => sum + item.mobile_share, 0) / items.length
       return Math.round(avg * 100)
     })
 
     const newVisitorData = labels.map((month) => {
       const items = monthlyData[month]
-      const avg = items.reduce((sum, item) => sum + item.new_visitor_rate, 0) / items.length
+      const avg =
+        items.reduce((sum: number, item: any) => sum + item.new_visitor_rate, 0) / items.length
       return Math.round(avg * 100)
     })
 
     const paidTrafficData = labels.map((month) => {
       const items = monthlyData[month]
-      const avg = items.reduce((sum, item) => sum + item.paid_traffic_share, 0) / items.length
+      const avg =
+        items.reduce((sum: number, item: any) => sum + item.paid_traffic_share, 0) / items.length
       return Math.round(avg * 100)
     })
 

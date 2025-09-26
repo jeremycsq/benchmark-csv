@@ -141,31 +141,27 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref, watch } from 'vue'
-import { useTrafficDataStore } from '@/stores/trafficData'
-import { useEngagementDataStore } from '@/stores/engagementData'
-import { useConversionDataStore } from '@/stores/conversionData'
-import { useFrustrationDataStore } from '@/stores/frustrationData'
+import { computed } from 'vue'
 import { pageConfigs, type PageMetrics } from '@/config/pageConfig'
 import { useGlobalFiltersStore } from '@/stores/globalFilters'
+import { useTrafficMetrics } from '@/composables/useTrafficMetrics'
 
 interface Props {
   pageType: 'traffic' | 'engagement' | 'frustration' | 'conversion'
-  trafficStore?: ReturnType<typeof useTrafficDataStore>
-  engagementStore?: ReturnType<typeof useEngagementDataStore>
-  conversionStore?: ReturnType<typeof useConversionDataStore>
-  frustrationStore?: ReturnType<typeof useFrustrationDataStore>
 }
 
-const props = withDefaults(defineProps<Props>(), {
-  trafficStore: undefined,
-  engagementStore: undefined,
-  conversionStore: undefined,
-  frustrationStore: undefined,
-})
+const props = defineProps<Props>()
 
-const defaultTrafficStore = useTrafficDataStore()
 const globalFilters = useGlobalFiltersStore()
+
+// Connexion aux données Supabase pour le trafic
+const { benchmarkMetrics, yoyChanges, isLoading, error } = useTrafficMetrics()
+
+// Debug: afficher les données reçues
+console.log('DataOverview - benchmarkMetrics:', benchmarkMetrics.value)
+console.log('DataOverview - yoyChanges:', yoyChanges.value)
+console.log('DataOverview - isLoading:', isLoading.value)
+console.log('DataOverview - error:', error.value)
 
 const pageConfig = computed<PageMetrics>(() => {
   return pageConfigs[props.pageType]
@@ -204,74 +200,34 @@ const dynamicTitle = computed(() => {
   }
 })
 
-// Valeurs randomisées pour YoY et MoM
-const randomizedValues = ref({
-  yoy: [0, 0, 0, 0],
-  mom: [0, 0, 0, 0],
+// Valeurs calculées depuis Supabase
+const realValues = computed(() => {
+  if (props.pageType === 'traffic' && yoyChanges.value && benchmarkMetrics.value) {
+    return {
+      yoy: [
+        yoyChanges.value.overall || 0,
+        yoyChanges.value.mobile || 0,
+        yoyChanges.value.new || 0,
+        yoyChanges.value.unpaid || 0,
+      ],
+      mom: [
+        // Pour MoM, on utilise une variation simulée basée sur les données de benchmark
+        // En réalité, il faudrait des données MoM spécifiques dans la base
+        Math.round((Math.random() - 0.5) * 40),
+        Math.round((Math.random() - 0.5) * 40),
+        Math.round((Math.random() - 0.5) * 40),
+        Math.round((Math.random() - 0.5) * 40),
+      ],
+    }
+  }
+
+  // Pour les autres types de pages, retourner des valeurs par défaut
+  // TODO: Implémenter les composables pour engagement, conversion, frustration
+  return {
+    yoy: [0, 0, 0, 0],
+    mom: [0, 0, 0, 0],
+  }
 })
-
-// Fonction pour randomiser les valeurs selon le type de métrique
-const randomizeValues = () => {
-  const pageType = props.pageType
-
-  // Randomiser les valeurs YoY selon le type de page
-  randomizedValues.value.yoy = Array.from({ length: 4 }, (_, index) => {
-    switch (pageType) {
-      case 'traffic':
-        // Pourcentages pour le traffic (-20 à +20)
-        return Math.floor(Math.random() * 41) - 20
-      case 'engagement':
-        // Pourcentages pour l'engagement (-15 à +25)
-        return Math.floor(Math.random() * 41) - 15
-      case 'frustration':
-        // Scores et pourcentages pour la frustration
-        if (index === 0) {
-          // Frustration Score (30-70)
-          return Math.floor(Math.random() * 41) + 30
-        } else if (index === 1) {
-          // Load Time (temps en secondes, 30-120)
-          return Math.floor(Math.random() * 91) + 30
-        } else {
-          // Pourcentages pour les autres métriques (-15 à +15)
-          return Math.floor(Math.random() * 31) - 15
-        }
-      case 'conversion':
-        // Pourcentages pour la conversion (-10 à +20)
-        return Math.floor(Math.random() * 31) - 10
-      default:
-        return Math.floor(Math.random() * 41) - 20
-    }
-  })
-
-  // Randomiser les valeurs MoM selon le type de page
-  randomizedValues.value.mom = Array.from({ length: 4 }, (_, index) => {
-    switch (pageType) {
-      case 'traffic':
-        // Pourcentages pour le traffic (-10 à +30)
-        return Math.floor(Math.random() * 41) - 10
-      case 'engagement':
-        // Pourcentages pour l'engagement (-5 à +25)
-        return Math.floor(Math.random() * 31) - 5
-      case 'frustration':
-        // Scores et pourcentages pour la frustration
-        if (index === 0) {
-          // Frustration Score (25-65)
-          return Math.floor(Math.random() * 41) + 25
-        } else if (index === 1) {
-          // Load Time (temps en secondes, 25-100)
-          return Math.floor(Math.random() * 76) + 25
-        } else {
-          // Pourcentages pour les autres métriques (-20 à +10)
-          return Math.floor(Math.random() * 31) - 20
-        }
-      case 'conversion':
-        // Pourcentages pour la conversion (-5 à +15)
-        return Math.floor(Math.random() * 21) - 5
-      default:
-        return Math.floor(Math.random() * 41) - 10
-    }
-  })
-}
 
 // Fonction pour formater les valeurs avec le bon format selon le type
 const formatValue = (
@@ -297,31 +253,7 @@ const formatValue = (
   return `${sign}${value}%`
 }
 
-// Détection automatique de filtres actifs
-const hasActiveFilters = computed(() => {
-  // Utiliser le store approprié selon le type de page
-  let store
-  switch (props.pageType) {
-    case 'engagement':
-      store = props.engagementStore || useEngagementDataStore()
-      break
-    case 'conversion':
-      store = props.conversionStore || useConversionDataStore()
-      break
-    case 'frustration':
-      store = props.frustrationStore || useFrustrationDataStore()
-      break
-    default:
-      store = props.trafficStore || defaultTrafficStore
-  }
-
-  return (
-    !!store.selectedCountry ||
-    !!store.selectedIndustry ||
-    !!store.selectedMonth ||
-    !!store.selectedDevice
-  )
-})
+// Les filtres sont gérés automatiquement par useTrafficMetrics
 
 // Fonction pour obtenir la valeur à afficher
 const getMetricValue = (
@@ -329,11 +261,12 @@ const getMetricValue = (
   period: 'yoy' | 'mom',
   index: number,
 ): string => {
-  // Désormais, la randomisation est prioritaire dès qu'un filtre est actif
-  if (hasActiveFilters.value) {
-    const randomValue = randomizedValues.value[period][index]
-    return formatValue(randomValue, metric, props.pageType, index)
+  // Utiliser les vraies valeurs depuis Supabase si disponibles
+  if (props.pageType === 'traffic' && realValues.value) {
+    const realValue = realValues.value[period][index]
+    return formatValue(realValue, metric, props.pageType, index)
   }
+
   // Sinon, valeur statique du config
   return metric.value
 }
@@ -344,43 +277,16 @@ const getNumericValue = (
   period: 'yoy' | 'mom',
   index: number,
 ): number => {
-  if (hasActiveFilters.value) {
-    return randomizedValues.value[period][index]
+  // Utiliser les vraies valeurs depuis Supabase si disponibles
+  if (props.pageType === 'traffic' && realValues.value) {
+    return realValues.value[period][index]
   }
+
   // Pour les valeurs statiques, extraire le nombre de la chaîne
   const numericValue = parseFloat(metric.value.replace(/[%,min]/g, ''))
   return isNaN(numericValue) ? 0 : numericValue
 }
 
-// Surveiller les changements de filtres pour randomiser les valeurs
-watch(
-  () => {
-    // Utiliser le store approprié selon le type de page
-    let store
-    switch (props.pageType) {
-      case 'engagement':
-        store = props.engagementStore || useEngagementDataStore()
-        break
-      case 'conversion':
-        store = props.conversionStore || useConversionDataStore()
-        break
-      case 'frustration':
-        store = props.frustrationStore || useFrustrationDataStore()
-        break
-      default:
-        store = props.trafficStore || defaultTrafficStore
-    }
-
-    return [
-      store.selectedCountry,
-      store.selectedIndustry,
-      store.selectedMonth,
-      store.selectedDevice,
-    ]
-  },
-  () => {
-    randomizeValues()
-  },
-  { immediate: true },
-)
+// Les valeurs se mettent à jour automatiquement via les computed properties
+// Pas besoin de watch car useTrafficMetrics est réactif aux filtres globaux
 </script>

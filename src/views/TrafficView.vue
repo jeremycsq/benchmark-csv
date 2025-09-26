@@ -33,6 +33,7 @@
         >
           Overview
         </span>
+
         <div class="mb-8 reveal-up">
           <div class="flex flex-col md:flex-row mt-4">
             <div class="w-full md:w-1/3 flex flex-col items-start gap-4 justify-center">
@@ -626,12 +627,13 @@
 </template>
 
 <script setup lang="ts">
-import { ref, watch, computed } from 'vue'
+import { computed, onMounted } from 'vue'
 import { useTrafficDataStore } from '@/stores/trafficData'
 import DataOverview from '@/components/DataOverview.vue'
 import { useScrollReveal } from '@/composables/useScrollReveal'
 import { LineChart } from '@/components/charts'
 import { useGlobalFiltersStore } from '@/stores/globalFilters'
+import { useTrafficMetrics } from '@/composables/useTrafficMetrics'
 
 // Animation générale
 useScrollReveal('.reveal-up', {
@@ -653,189 +655,29 @@ useScrollReveal('.reveal-fade', {
 
 const trafficStore = useTrafficDataStore()
 const globalFilters = useGlobalFiltersStore()
+const { benchmarkMetrics, yoyChanges, trafficShareByChannel, channelYoyChanges, chartData } =
+  useTrafficMetrics()
 
-// Valeurs random pour le benchmark
-const benchmarkData = ref({
-  mobile: 0,
-  desktop: 0,
-  new: 0,
-  returning: 0,
-  paid: 0,
-  unpaid: 0,
-})
+// Utiliser les données calculées depuis Supabase
+const benchmarkData = computed(() => benchmarkMetrics.value)
 
-function randomizeBenchmark() {
-  // Mobile/Desktop (somme = 100)
-  benchmarkData.value.mobile = Math.floor(Math.random() * 61) + 20 // 20 à 80
-  benchmarkData.value.desktop = 100 - benchmarkData.value.mobile
+// Utiliser les données calculées depuis Supabase
+const changeData = computed(() => yoyChanges.value)
 
-  // New/Returning (somme = 100)
-  benchmarkData.value.new = Math.floor(Math.random() * 61) + 20
-  benchmarkData.value.returning = 100 - benchmarkData.value.new
+// Utiliser les données calculées depuis Supabase
+const trafficShareData = computed(() => trafficShareByChannel.value)
 
-  // Paid/Unpaid (somme = 100)
-  benchmarkData.value.paid = Math.floor(Math.random() * 41) + 10 // 10 à 50
-  benchmarkData.value.unpaid = 100 - benchmarkData.value.paid
-}
+// Les données sont maintenant calculées via useTrafficMetrics
 
-// Valeurs random pour le bloc Change
-const changeData = ref({
-  overall: 0,
-  desktop: 0,
-  mobile: 0,
-  unpaid: 0,
-  new: 0,
-  returning: 0,
-})
+// Les données du graphique sont maintenant calculées dans useTrafficMetrics
 
-function randomizeChange() {
-  // Toutes les valeurs : -20 à +20
-  changeData.value.overall = Math.floor(Math.random() * 41) - 20
-  changeData.value.desktop = Math.floor(Math.random() * 41) - 20
-  changeData.value.mobile = Math.floor(Math.random() * 41) - 20
-  changeData.value.unpaid = Math.floor(Math.random() * 41) - 20
-  changeData.value.new = Math.floor(Math.random() * 41) - 20
-  changeData.value.returning = Math.floor(Math.random() * 41) - 20
-}
+// Utiliser les données calculées depuis Supabase
+const acquisitionChannelsData = computed(() => channelYoyChanges.value)
 
-// Valeurs random pour le bloc Change - Traffic Share
-const trafficShareData = ref({
-  direct: 0,
-  display: 0,
-  email: 0,
-  organic_search: 0,
-  organic_social: 0,
-  paid_search: 0,
-})
+// Les données sont maintenant calculées automatiquement via useTrafficMetrics
 
-function randomizeTrafficShare() {
-  // Chaque valeur entre 10% et 55%
-  trafficShareData.value.direct = Math.floor(Math.random() * 46) + 10
-  trafficShareData.value.display = Math.floor(Math.random() * 46) + 10
-  trafficShareData.value.email = Math.floor(Math.random() * 46) + 10
-  trafficShareData.value.organic_search = Math.floor(Math.random() * 46) + 10
-  trafficShareData.value.organic_social = Math.floor(Math.random() * 46) + 10
-  trafficShareData.value.paid_search = Math.floor(Math.random() * 46) + 10
-}
-
-// Valeurs randomisées pour le bloc Change - Bounce rates
-const bounceRatesData = ref({
-  paid_search: 0,
-  direct: 0,
-  organic_search: 0,
-  paid_social: 0,
-  display: 0,
-  email: 0,
-})
-
-function randomizeBounceRates() {
-  // Chaque valeur entre 10% et 90%
-  bounceRatesData.value.paid_search = Math.floor(Math.random() * 81) + 10
-  bounceRatesData.value.direct = Math.floor(Math.random() * 81) + 10
-  bounceRatesData.value.organic_search = Math.floor(Math.random() * 81) + 10
-  bounceRatesData.value.paid_social = Math.floor(Math.random() * 81) + 10
-  bounceRatesData.value.display = Math.floor(Math.random() * 81) + 10
-  bounceRatesData.value.email = Math.floor(Math.random() * 81) + 10
-}
-
-// Points de base pour chaque courbe (Y)
-const baseCurves = {
-  byDevice: [180, 60, 120, 80, 200],
-  newReturning: [200, 100, 120, 40, 120],
-  paidUnpaid: [120, 220, 80, 110, 120, 160],
-}
-
-// Points randomisés
-const curves = ref({
-  byDevice: [...baseCurves.byDevice],
-  newReturning: [...baseCurves.newReturning],
-  paidUnpaid: [...baseCurves.paidUnpaid],
-})
-
-function randomizeCurves() {
-  // Ajoute un offset aléatoire raisonnable à chaque point
-  curves.value.byDevice = baseCurves.byDevice.map((y) => y + Math.floor(Math.random() * 21) - 10)
-  curves.value.newReturning = baseCurves.newReturning.map(
-    (y) => y + Math.floor(Math.random() * 21) - 10,
-  )
-  curves.value.paidUnpaid = baseCurves.paidUnpaid.map(
-    (y) => y + Math.floor(Math.random() * 21) - 10,
-  )
-}
-
-// Données pour le graphique Chart.js
-const chartData = computed(() => ({
-  labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
-  datasets: [
-    {
-      label: 'By Device',
-      data: curves.value.byDevice.map((y) => Math.max(5, Math.min(100, 100 - y / 2))),
-      borderColor: '#C1E3B1',
-      backgroundColor: '#C1E3B1',
-      tension: 0.4,
-    },
-    {
-      label: 'New v. Returning',
-      data: curves.value.newReturning.map((y) => Math.max(5, Math.min(100, 100 - y / 2))),
-      borderColor: '#6D9A7A',
-      backgroundColor: '#6D9A7A',
-      tension: 0.4,
-    },
-    {
-      label: 'Paid v. Unpaid',
-      data: curves.value.paidUnpaid.map((y) => Math.max(5, Math.min(100, 100 - y / 2))),
-      borderColor: '#2F654B',
-      backgroundColor: '#2F654B',
-      tension: 0.4,
-    },
-  ],
-}))
-
-// Données pour le graphique YoY par canal d'acquisition
-const acquisitionChannelsData = ref<
-  { label: string; values: number[]; display: (val: number) => string }[]
->([])
-
-function randomizeAcquisitionChannelsData() {
-  const channels = [
-    { label: 'Direct (30%)' },
-    { label: 'Organic Search (25%)' },
-    { label: 'Paid Search (15%)' },
-    { label: 'Email (8%)' },
-    { label: 'Paid Social (6%)' },
-    { label: 'Display & Ads (9%)' },
-  ]
-  acquisitionChannelsData.value = channels.map((c) => ({
-    label: c.label,
-    values: [0, Math.round(Math.random() * 20 - 4), 0],
-    display: (val: number) => `${val > 0 ? '+' : ''}${val}%`,
-  }))
-}
-
-// Initialisation immédiate
-randomizeAcquisitionChannelsData()
-
-// Synchronisation sur les filtres globaux
-watch(
-  [
-    () => trafficStore.selectedCountry,
-    () => trafficStore.selectedIndustry,
-    () => trafficStore.selectedMonth,
-    () => trafficStore.selectedDevice,
-  ],
-  () => {
-    randomizeAcquisitionChannelsData()
-  },
-  { immediate: true },
-)
-
-// Valeur dynamique pour le header
-const headerValue = ref(43.1)
-
-function randomizeHeaderValue() {
-  // Génère un pourcentage entre 20 et 70 avec une décimale
-  headerValue.value = Math.round((Math.random() * 50 + 20) * 10) / 10
-}
+// Utiliser les données calculées depuis Supabase
+const headerValue = computed(() => 0) // TODO: Calculer depuis les données Supabase
 
 // Texte dynamique selon le mois sélectionné
 enum HeaderText {
@@ -846,25 +688,8 @@ const headerText = computed(() =>
   globalFilters.selectedMonth === 'All Months' ? HeaderText.ThisYear : HeaderText.UpFromLastMonth,
 )
 
-// Randomise à chaque changement de filtre
-watch(
-  [
-    () => trafficStore.selectedCountry,
-    () => trafficStore.selectedIndustry,
-    () => trafficStore.selectedMonth,
-    () => trafficStore.selectedDevice,
-  ],
-  () => {
-    randomizeBenchmark()
-    randomizeChange()
-    randomizeTrafficShare()
-    randomizeBounceRates()
-    randomizeCurves()
-    randomizeHeaderValue()
-  },
-  { immediate: true },
-)
-
-// Charger les données initiales
-trafficStore.fetchTrafficData()
+// Initialiser les données Supabase
+onMounted(() => {
+  globalFilters.initializeData()
+})
 </script>

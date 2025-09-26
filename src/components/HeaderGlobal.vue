@@ -35,34 +35,30 @@
       <!-- Selects custom centrés -->
       <div class="flex flex-wrap items-center gap-2 justify-center">
         <CustomSelect
-          label="All Countries"
+          :label="globalFilters.selectedCountry"
           icon="globe"
-          :options="countryOptions"
-          :loading="loadingCountries"
+          :options="globalFilters.countryOptions"
           @change="handleCountryChange"
         />
         <span class="text-gray-200 text-sm">/</span>
         <CustomSelect
-          label="All Industries"
+          :label="globalFilters.selectedIndustry"
           icon="tag"
-          :options="industryOptions"
-          :loading="loadingIndustries"
+          :options="globalFilters.industryOptions"
           @change="handleIndustryChange"
         />
         <span class="text-gray-200 text-sm">/</span>
         <CustomSelect
-          label="All Months"
+          :label="globalFilters.selectedMonth"
           icon="calendar"
-          :options="monthOptions"
-          :loading="loadingMonths"
+          :options="globalFilters.monthOptions"
           @change="handleMonthChange"
         />
         <span class="text-gray-200 text-sm">/</span>
         <CustomSelect
-          label="All Devices"
+          :label="globalFilters.selectedDevice"
           icon="devices"
-          :options="deviceOptions"
-          :loading="loadingDevices"
+          :options="globalFilters.deviceOptions"
           @change="handleDeviceChange"
         />
         <span class="text-gray-200 text-sm">/</span>
@@ -154,6 +150,16 @@
     >
       Conversion
     </RouterLink>
+    <RouterLink
+      to="/admin"
+      class="py-3 font-medium transition-colors"
+      :class="{
+        'text-[#DC2626]': $route.path === '/admin',
+        'text-gray-400 hover:text-[#DC2626]': $route.path !== '/admin',
+      }"
+    >
+      Admin
+    </RouterLink>
   </nav>
   <DownloadModal
     :open="showDownloadModal"
@@ -190,168 +196,9 @@ const trafficStore = useTrafficDataStore()
 const engagementStore = useEngagementDataStore()
 const conversionStore = useConversionDataStore()
 
-// État pour les pays
-const countries = ref<string[]>([])
-const loadingCountries = ref(false)
+// Les options sont maintenant gérées par le store globalFilters
 
-// État pour les industries
-const industries = ref<string[]>([])
-const loadingIndustries = ref(false)
-
-// État pour les mois
-const months = ref<string[]>([])
-const loadingMonths = ref(false)
-
-// État pour les devices
-const devices = ref<string[]>([])
-const loadingDevices = ref(false)
-
-// Options pour le select des pays
-const countryOptions = computed(() => {
-  if (loadingCountries.value) {
-    return ['Chargement...']
-  }
-  return ['All Countries', ...countries.value]
-})
-
-// Options pour le select des industries
-const industryOptions = computed(() => {
-  if (loadingIndustries.value) {
-    return ['Chargement...']
-  }
-  return ['All Industries', ...industries.value]
-})
-
-// Options pour le select des mois
-const monthOptions = computed(() => {
-  if (loadingMonths.value) {
-    return ['Chargement...']
-  }
-  return ['All Months', ...months.value]
-})
-
-// Options pour le select des devices
-const deviceOptions = computed(() => {
-  if (loadingDevices.value) {
-    return ['Chargement...']
-  }
-  return ['All Devices', ...devices.value]
-})
-
-// Charger les pays depuis la base de données
-const loadCountries = async () => {
-  try {
-    loadingCountries.value = true
-    const { supabase } = useSupabase()
-
-    const { data, error } = await supabase.from('data').select('country').not('country', 'is', null)
-
-    if (error) {
-      console.error('Erreur lors du chargement des pays:', error)
-      return
-    }
-
-    // Extraire les pays uniques, mettre la première lettre en majuscule et les trier
-    const uniqueCountries = [...new Set(data?.map((row) => row.country).filter(Boolean))]
-    countries.value = uniqueCountries
-      .map((country) => country.charAt(0).toUpperCase() + country.slice(1).toLowerCase())
-      .sort()
-
-    console.log(`✅ ${countries.value.length} pays chargés`)
-  } catch (err) {
-    console.error('Erreur lors du chargement des pays:', err)
-  } finally {
-    loadingCountries.value = false
-  }
-}
-
-// Charger les industries depuis la base de données
-const loadIndustries = async () => {
-  try {
-    loadingIndustries.value = true
-    const { supabase } = useSupabase()
-
-    const { data, error } = await supabase
-      .from('data')
-      .select('industry')
-      .not('industry', 'is', null)
-
-    if (error) {
-      console.error('Erreur lors du chargement des industries:', error)
-      return
-    }
-
-    // Extraire les industries uniques, mettre la première lettre en majuscule et les trier
-    const uniqueIndustries = [...new Set(data?.map((row) => row.industry).filter(Boolean))]
-    industries.value = uniqueIndustries
-      .map((industry) => industry.charAt(0).toUpperCase() + industry.slice(1).toLowerCase())
-      .sort()
-
-    console.log(`✅ ${industries.value.length} industries chargées`)
-  } catch (err) {
-    console.error('Erreur lors du chargement des industries:', err)
-  } finally {
-    loadingIndustries.value = false
-  }
-}
-
-// Charger les mois depuis la base de données
-const loadMonths = async () => {
-  try {
-    loadingMonths.value = true
-
-    // Tous les mois de l'année en anglais
-    const allMonths = [
-      'January',
-      'February',
-      'March',
-      'April',
-      'May',
-      'June',
-      'July',
-      'August',
-      'September',
-      'October',
-      'November',
-      'December',
-    ]
-
-    months.value = allMonths
-
-    console.log(`✅ ${months.value.length} mois chargés`)
-  } catch (err) {
-    console.error('Erreur lors du chargement des mois:', err)
-  } finally {
-    loadingMonths.value = false
-  }
-}
-
-// Charger les devices depuis la base de données
-const loadDevices = async () => {
-  try {
-    loadingDevices.value = true
-    const { supabase } = useSupabase()
-
-    const { data, error } = await supabase.from('data').select('device').not('device', 'is', null)
-
-    if (error) {
-      console.error('Erreur lors du chargement des devices:', error)
-      return
-    }
-
-    // Extraire les devices uniques, mettre la première lettre en majuscule et les trier
-    const uniqueDevices = [...new Set(data?.map((row) => row.device).filter(Boolean))]
-    devices.value = uniqueDevices
-      .map((device) => device.charAt(0).toUpperCase() + device.slice(1).toLowerCase())
-      .sort()
-
-    console.log(`✅ ${devices.value.length} devices chargés`)
-  } catch (err) {
-    console.error('Erreur lors du chargement des devices:', err)
-  } finally {
-    loadingDevices.value = false
-  }
-}
+// Les données sont maintenant chargées via le store globalFilters
 
 // Vérifier la connexion Supabase
 const checkSupabaseConnection = async () => {
@@ -492,17 +339,8 @@ onMounted(() => {
   // Vérifier la connexion Supabase au montage
   checkSupabaseConnection()
 
-  // Charger les pays depuis la base de données
-  loadCountries()
-
-  // Charger les industries depuis la base de données
-  loadIndustries()
-
-  // Charger les mois depuis la base de données
-  loadMonths()
-
-  // Charger les devices depuis la base de données
-  loadDevices()
+  // Initialiser les données via le store globalFilters
+  globalFilters.initializeData()
 })
 
 onBeforeUnmount(() => {

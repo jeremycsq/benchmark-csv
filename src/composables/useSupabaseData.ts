@@ -69,9 +69,7 @@ export function useSupabaseData() {
 
       const { data: result, error: fetchError } = await supabase
         .from('traffic')
-        .select(
-          'analysis_month, country, industry, device, avg_daily_traffic, yoy_change, mobile_yoy_change, new_visitor_yoy_change, paid_traffic_yoy_change, mobile_share, new_visitor_rate, returning_visitor_rate, paid_traffic_share',
-        )
+        .select('*')
         .order('analysis_month', { ascending: true })
 
       if (fetchError) {

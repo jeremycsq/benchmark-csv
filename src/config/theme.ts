@@ -15,16 +15,16 @@ export interface PageTheme {
 
 export const pageThemes: Record<string, PageTheme> = {
   traffic: {
-    primary: '#307A57',
-    secondary: '#3A9469',
-    accent: '#C1E3B1',
-    background: '#F5FFF0',
+    primary: '#8D0A38',
+    secondary: '#A31242',
+    accent: '#FFDCDB',
+    background: '#FFF6F6',
     text: '#000000',
     gradient: {
-      from: '#307A57',
-      to: '#3A9469',
-      hoverFrom: '#2D6A4E',
-      hoverTo: '#35855A',
+      from: '#8D0A38',
+      to: '#A31242',
+      hoverFrom: '#72082C',
+      hoverTo: '#8D0A38',
     },
   },
   engagement: {
@@ -79,10 +79,10 @@ export const chartColors: Record<
   }
 > = {
   traffic: {
-    primary: '#C1E3B1',
-    secondary: '#6D9A7A',
-    tertiary: '#2F654B',
-    background: '#E9F5E4',
+    primary: '#FFDCDB',
+    secondary: '#FFB6B5',
+    tertiary: '#8D0A38',
+    background: '#FFF6F6',
   },
   engagement: {
     primary: '#E9D5FF',

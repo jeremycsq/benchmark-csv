@@ -69,8 +69,10 @@ export function useSupabaseData() {
 
       const { data: result, error: fetchError } = await supabase
         .from('traffic')
-        .select('*')
-        .order('calculation_timestamp', { ascending: false })
+        .select(
+          'analysis_month, country, industry, device, avg_daily_traffic, yoy_change, mobile_yoy_change, new_visitor_yoy_change, paid_traffic_yoy_change, mobile_share, new_visitor_rate, returning_visitor_rate, paid_traffic_share',
+        )
+        .order('analysis_month', { ascending: true })
 
       if (fetchError) {
         console.error('useSupabaseData - Erreur Supabase:', fetchError)
@@ -85,6 +87,7 @@ export function useSupabaseData() {
 
       console.log('useSupabaseData - Données récupérées:', result)
       console.log("useSupabaseData - Nombre d'éléments:", result?.length || 0)
+      console.log('useSupabaseData - Première ligne de données:', result?.[0])
       data.value = result || []
       console.log('useSupabaseData - data.value après assignation:', data.value.length)
       updateFilterOptions()

@@ -176,7 +176,7 @@ const dynamicTitle = computed(() => {
   // Mapping des titres par page
   const titles = {
     traffic: {
-      all: 'How has Traffic evolved across sectors this year?',
+      all: 'Reveal which metrics need immediate client attention',
       month: (m: string) => `How has Traffic evolved in ${m} ?`,
     },
     engagement: {

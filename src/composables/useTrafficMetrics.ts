@@ -8,6 +8,9 @@ export function useTrafficMetrics() {
 
   // Données filtrées selon les filtres globaux
   const filteredData = computed(() => {
+    console.log('useTrafficMetrics - data.value (avant filtrage):', data.value.length, 'éléments')
+    console.log('useTrafficMetrics - Première ligne de data.value:', data.value[0])
+
     // Construire les filtres - "All" signifie pas de filtre (undefined)
     const filters: {
       country?: string
@@ -39,6 +42,7 @@ export function useTrafficMetrics() {
     console.log('useTrafficMetrics - Filtres actifs appliqués:', filters)
 
     const filtered = getFilteredData(filters)
+    console.log('useTrafficMetrics - Données filtrées:', filtered.value.length, 'éléments')
     return filtered.value
   })
 
@@ -78,7 +82,13 @@ export function useTrafficMetrics() {
 
   // Calcul des variations YoY
   const yoyChanges = computed(() => {
+    console.log(
+      'useTrafficMetrics - yoyChanges - filteredData.value.length:',
+      filteredData.value.length,
+    )
+
     if (!filteredData.value.length) {
+      console.log('useTrafficMetrics - yoyChanges - Pas de données filtrées')
       return {
         overall: 0,
         desktop: 0,
@@ -89,21 +99,39 @@ export function useTrafficMetrics() {
       }
     }
 
+    // Debug: voir les champs disponibles dans la première ligne
+    console.log(
+      'useTrafficMetrics - yoyChanges - Première ligne de données:',
+      filteredData.value[0],
+    )
+    console.log('useTrafficMetrics - yoyChanges - Champs YoY disponibles:', {
+      yoy_change: filteredData.value[0]?.yoy_change,
+      mobile_yoy_change: filteredData.value[0]?.mobile_yoy_change,
+      new_visitor_yoy_change: filteredData.value[0]?.new_visitor_yoy_change,
+      paid_traffic_yoy_change: filteredData.value[0]?.paid_traffic_yoy_change,
+    })
+
     // Moyenne des changements YoY
     const avgYoyChange =
-      filteredData.value.reduce((sum: number, item: any) => sum + item.yoy_change, 0) /
+      filteredData.value.reduce((sum: number, item: any) => sum + (item.yoy_change || 0), 0) /
       filteredData.value.length
     const avgMobileYoyChange =
-      filteredData.value.reduce((sum: number, item: any) => sum + item.mobile_yoy_change, 0) /
-      filteredData.value.length
+      filteredData.value.reduce(
+        (sum: number, item: any) => sum + (item.mobile_yoy_change || 0),
+        0,
+      ) / filteredData.value.length
     const avgNewVisitorYoyChange =
-      filteredData.value.reduce((sum: number, item: any) => sum + item.new_visitor_yoy_change, 0) /
-      filteredData.value.length
+      filteredData.value.reduce(
+        (sum: number, item: any) => sum + (item.new_visitor_yoy_change || 0),
+        0,
+      ) / filteredData.value.length
     const avgPaidTrafficYoyChange =
-      filteredData.value.reduce((sum: number, item: any) => sum + item.paid_traffic_yoy_change, 0) /
-      filteredData.value.length
+      filteredData.value.reduce(
+        (sum: number, item: any) => sum + (item.paid_traffic_yoy_change || 0),
+        0,
+      ) / filteredData.value.length
 
-    return {
+    const result = {
       overall: Math.round(avgYoyChange),
       desktop: Math.round(avgYoyChange - avgMobileYoyChange), // Approximation
       mobile: Math.round(avgMobileYoyChange),
@@ -111,6 +139,9 @@ export function useTrafficMetrics() {
       new: Math.round(avgNewVisitorYoyChange),
       returning: Math.round(avgYoyChange - avgNewVisitorYoyChange), // Approximation
     }
+
+    console.log('useTrafficMetrics - yoyChanges - Résultat calculé:', result)
+    return result
   })
 
   // Calcul des parts de trafic par canal
@@ -235,7 +266,13 @@ export function useTrafficMetrics() {
 
   // Données pour le graphique linéaire
   const chartData = computed(() => {
+    console.log(
+      'useTrafficMetrics - chartData - filteredData.value.length:',
+      filteredData.value.length,
+    )
+
     if (!filteredData.value.length) {
+      console.log('useTrafficMetrics - chartData - Aucune donnée, retour des données par défaut')
       return {
         labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
         datasets: [],

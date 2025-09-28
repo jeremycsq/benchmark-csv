@@ -15,7 +15,7 @@ export interface PageMetrics {
 export const pageConfigs: Record<string, PageMetrics> = {
   traffic: {
     title: 'How is your traffic looking this year?',
-    titleColor: '#307A57',
+    titleColor: '#8D0A38',
     yoyMetrics: [
       {
         value: '-10,5%',

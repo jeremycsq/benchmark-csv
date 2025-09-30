@@ -1,6 +1,7 @@
 import { computed } from 'vue'
 import { useSupabaseData, type TrafficData } from './useSupabaseData'
 import { useGlobalFiltersStore } from '../stores/globalFilters'
+import { testTrafficMetrics } from '../utils/debugTrafficData'
 
 export function useTrafficMetrics() {
   const { data, getFilteredData } = useSupabaseData()
@@ -27,7 +28,17 @@ export function useTrafficMetrics() {
       filters.industry = globalFilters.selectedIndustry
     }
     if (globalFilters.selectedDevice !== 'All Devices') {
-      filters.device = globalFilters.selectedDevice
+      // Mapper le label UI vers la valeur DB (codes)
+      const mapDevice = (label: string): string => {
+        const l = label.toLowerCase()
+        if (l === 'desktop') return '1'
+        if (l === 'mobile') return '2'
+        return label
+      }
+      filters.device = mapDevice(globalFilters.selectedDevice)
+    } else {
+      // All Devices sélectionné → cibler explicitement les lignes 'all_devices'
+      filters.device = 'all_devices'
     }
     if (globalFilters.selectedMonth !== 'All Months') {
       filters.analysis_month = globalFilters.selectedMonth
@@ -38,11 +49,26 @@ export function useTrafficMetrics() {
       selectedIndustry: globalFilters.selectedIndustry,
       selectedDevice: globalFilters.selectedDevice,
       selectedMonth: globalFilters.selectedMonth,
+      selectedVisitorType: globalFilters.selectedVisitorType,
     })
     console.log('useTrafficMetrics - Filtres actifs appliqués:', filters)
 
-    const filtered = getFilteredData(filters)
+    let filtered = getFilteredData(filters)
     console.log('useTrafficMetrics - Données filtrées:', filtered.value.length, 'éléments')
+
+    // Fallback: si "All Devices" (all_devices) ne retourne rien pour une industrie/pays donnée,
+    // on enlève le filtre device pour garder des données.
+    if (
+      filters.device === 'all_devices' &&
+      (filtered.value === undefined || filtered.value.length === 0)
+    ) {
+      const { device, ...rest } = filters
+      console.log(
+        'useTrafficMetrics - Fallback all_devices → suppression du filtre device (0 résultat avec all_devices)',
+      )
+      filtered = getFilteredData(rest)
+    }
+
     return filtered.value
   })
 
@@ -59,16 +85,36 @@ export function useTrafficMetrics() {
       }
     }
 
-    // Calcul des moyennes
+    // Calcul des moyennes avec validation des NaN
+    const validMobileShares = filteredData.value
+      .map((item: any) => Number(item.mobile_share))
+      .filter((val: number) => !isNaN(val) && val !== null && val !== undefined)
+
+    const validNewVisitorRates = filteredData.value
+      .map((item: any) => Number(item.new_visitor_rate))
+      .filter((val: number) => !isNaN(val) && val !== null && val !== undefined)
+
+    const validPaidTrafficShares = filteredData.value
+      .map((item: any) => Number(item.paid_traffic_share))
+      .filter((val: number) => !isNaN(val) && val !== null && val !== undefined)
+
     const avgMobileShare =
-      filteredData.value.reduce((sum: number, item: any) => sum + item.mobile_share, 0) /
-      filteredData.value.length
+      validMobileShares.length > 0
+        ? validMobileShares.reduce((sum: number, val: number) => sum + val, 0) /
+          validMobileShares.length
+        : 0
+
     const avgNewVisitorRate =
-      filteredData.value.reduce((sum: number, item: any) => sum + item.new_visitor_rate, 0) /
-      filteredData.value.length
+      validNewVisitorRates.length > 0
+        ? validNewVisitorRates.reduce((sum: number, val: number) => sum + val, 0) /
+          validNewVisitorRates.length
+        : 0
+
     const avgPaidTrafficShare =
-      filteredData.value.reduce((sum: number, item: any) => sum + item.paid_traffic_share, 0) /
-      filteredData.value.length
+      validPaidTrafficShares.length > 0
+        ? validPaidTrafficShares.reduce((sum: number, val: number) => sum + val, 0) /
+          validPaidTrafficShares.length
+        : 0
 
     return {
       mobile: Math.round(avgMobileShare * 100),
@@ -199,6 +245,76 @@ export function useTrafficMetrics() {
     })
 
     return result
+  })
+
+  // Calcul des métriques d'acquisition selon le type de visiteur
+  const acquisitionMetrics = computed(() => {
+    if (!filteredData.value.length) {
+      return [
+        { label: 'Organic Search', value: 0 },
+        { label: 'Direct', value: 0 },
+        { label: 'Social', value: 0 },
+        { label: 'Email', value: 0 },
+        { label: 'Paid Search', value: 0 },
+      ]
+    }
+
+    const visitorType = globalFilters.selectedVisitorType
+
+    // Calculer les moyennes selon le type de visiteur
+    let baseMultiplier = 1
+
+    if (visitorType === 'New') {
+      // Pour les nouveaux visiteurs, utiliser new_visitor_rate
+      const avgNewVisitorRate =
+        filteredData.value.reduce(
+          (sum: number, item: any) => sum + (Number(item.new_visitor_rate) || 0),
+          0,
+        ) / filteredData.value.length
+      baseMultiplier = avgNewVisitorRate
+    } else if (visitorType === 'Returning') {
+      // Pour les visiteurs de retour, utiliser returning_visitor_rate
+      const avgReturningVisitorRate =
+        filteredData.value.reduce(
+          (sum: number, item: any) => sum + (Number(item.returning_visitor_rate) || 0),
+          0,
+        ) / filteredData.value.length
+      baseMultiplier = avgReturningVisitorRate
+    }
+    // Pour "All visitors", baseMultiplier reste à 1
+
+    // Calculer la moyenne des parts de trafic payant
+    const avgPaidTrafficShare =
+      filteredData.value.reduce(
+        (sum: number, item: any) => sum + (Number(item.paid_traffic_share) || 0),
+        0,
+      ) / filteredData.value.length
+
+    // Appliquer les variations selon le type de visiteur
+    const organicShare = Math.round((1 - avgPaidTrafficShare) * 0.5 * 100 * baseMultiplier)
+    const directShare = Math.round((1 - avgPaidTrafficShare) * 0.3 * 100 * baseMultiplier)
+    const socialShare = Math.round((1 - avgPaidTrafficShare) * 0.1 * 100 * baseMultiplier)
+    const emailShare = Math.round((1 - avgPaidTrafficShare) * 0.05 * 100 * baseMultiplier)
+    const paidShare = Math.round(avgPaidTrafficShare * 100 * baseMultiplier)
+
+    // Variations YoY spécifiques selon le type de visiteur
+    let variations = [-15, -25, -10, -5, 30] // Valeurs par défaut pour "All visitors"
+
+    if (visitorType === 'New') {
+      // Nouveaux visiteurs : plus de croissance sur paid et organic, moins sur direct
+      variations = [-10, -35, -5, -2, 40]
+    } else if (visitorType === 'Returning') {
+      // Visiteurs de retour : plus stable, moins de croissance paid
+      variations = [-20, -15, -15, -8, 15]
+    }
+
+    return [
+      { label: 'Organic Search', value: Math.round(organicShare * (1 + variations[0] / 100)) },
+      { label: 'Direct', value: Math.round(directShare * (1 + variations[1] / 100)) },
+      { label: 'Social', value: Math.round(socialShare * (1 + variations[2] / 100)) },
+      { label: 'Email', value: Math.round(emailShare * (1 + variations[3] / 100)) },
+      { label: 'Paid Search', value: Math.round(paidShare * (1 + variations[4] / 100)) },
+    ]
   })
 
   // Calcul des variations YoY par canal
@@ -353,12 +469,18 @@ export function useTrafficMetrics() {
   console.log('useTrafficMetrics - filteredData.value:', filteredData.value)
   console.log('useTrafficMetrics - yoyChanges.value:', yoyChanges.value)
 
+  // Test unitaire complet pour identifier les NaN
+  if (filteredData.value.length > 0) {
+    testTrafficMetrics(filteredData.value)
+  }
+
   return {
     filteredData,
     benchmarkMetrics,
     yoyChanges,
     trafficShareByChannel,
     channelYoyChanges,
+    acquisitionMetrics,
     avgDailyTraffic,
     avgPercentileRank,
     chartData,

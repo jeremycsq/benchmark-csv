@@ -7,6 +7,7 @@ export const useGlobalFiltersStore = defineStore('globalFilters', () => {
   const selectedCountry = ref('All Countries')
   const selectedIndustry = ref('All Industries')
   const selectedDevice = ref('All Devices')
+  const selectedVisitorType = ref('All visitors')
 
   // Récupérer les données Supabase
   const { filterOptions, fetchAllData } = useSupabaseData()
@@ -30,9 +31,24 @@ export const useGlobalFiltersStore = defineStore('globalFilters', () => {
     })),
   ])
 
-  const deviceOptions = computed(() => [
-    { label: 'All Devices', value: 'All Devices' },
-    ...filterOptions.value.devices.map((device: string) => ({ label: device, value: device })),
+  const deviceOptions = computed(() => {
+    const mapped = filterOptions.value.devices
+      // masquer all_devices provenant de la DB
+      .filter((d: string) => String(d).toLowerCase() !== 'all_devices')
+      .map((d: string) => {
+        const val = String(d).toLowerCase()
+        if (val === '1') return { label: 'Desktop', value: 'Desktop' }
+        if (val === '2') return { label: 'Mobile', value: 'Mobile' }
+        return { label: d, value: d }
+      })
+
+    return [{ label: 'All Devices', value: 'All Devices' }, ...mapped]
+  })
+
+  const visitorTypeOptions = computed(() => [
+    { label: 'All visitors', value: 'All visitors' },
+    { label: 'New', value: 'New' },
+    { label: 'Returning', value: 'Returning' },
   ])
 
   function setMonth(month: string) {
@@ -46,6 +62,9 @@ export const useGlobalFiltersStore = defineStore('globalFilters', () => {
   }
   function setDevice(device: string) {
     selectedDevice.value = device
+  }
+  function setVisitorType(visitorType: string) {
+    selectedVisitorType.value = visitorType
   }
 
   // Initialiser les données
@@ -63,10 +82,13 @@ export const useGlobalFiltersStore = defineStore('globalFilters', () => {
     setIndustry,
     selectedDevice,
     setDevice,
+    selectedVisitorType,
+    setVisitorType,
     monthOptions,
     countryOptions,
     industryOptions,
     deviceOptions,
+    visitorTypeOptions,
     initializeData,
   }
 })

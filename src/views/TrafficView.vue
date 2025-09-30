@@ -16,12 +16,7 @@
               Compare your metrics to specific peers in the traffic category
             </span>
           </div>
-          <div class="flex items-center gap-4">
-            <span class="bg-[#8D0A38] text-white px-3 py-1 rounded-full text-sm font-semibold">
-              {{ headerText }}
-            </span>
-            <span class="text-3xl font-newedge text-[#8D0A38]">{{ headerValue }}%</span>
-          </div>
+          <div class="flex items-center gap-4"></div>
         </div>
         <span
           class="bg-[#FFDCDB] text-[#8D0A38] px-2 py-1 rounded-xl text-sm font-semibold mt-4 inline-block"
@@ -52,7 +47,15 @@
           Traffic share by major acquisition source
         </span>
         <TrafficShareByAcquisition />
-        <!-- Nouveau bloc "Change - Traffic Share YoY" -->
+        <!-- Section: Traffic share by acquisition type MoM change -->
+        <span
+          class="bg-[#FFDCDB] text-[#8D0A38] px-2 py-1 rounded-xl text-sm font-semibold mt-4 inline-block reveal-up"
+        >
+          Traffic share by acquisition type MoM change
+        </span>
+        <TrafficShareByAcquisitionMoM />
+
+        <!-- Section: Traffic share by acquisition channel YoY change -->
         <span
           class="bg-[#FFDCDB] text-[#8D0A38] px-2 py-1 rounded-xl text-sm font-semibold mt-4 inline-block reveal-up"
         >
@@ -71,11 +74,13 @@ import DataOverview from '@/components/DataOverview.vue'
 import { useScrollReveal } from '@/composables/useScrollReveal'
 import { useGlobalFiltersStore } from '@/stores/globalFilters'
 import { useTrafficMetrics } from '@/composables/useTrafficMetrics'
+import { logTrafficAudit } from '@/utils/trafficAudit'
 import {
   TrafficOverview,
   TrafficShareByTypes,
   TrafficChangeByType,
   TrafficShareByAcquisition,
+  TrafficShareByAcquisitionMoM,
   TrafficShareByChannelYoY,
 } from '@/components/traffic'
 
@@ -115,5 +120,13 @@ const headerText = computed(() =>
 // Initialiser les données Supabase
 onMounted(() => {
   globalFilters.initializeData()
+  // Audit des données quand disponibles (léger et en console)
+  setTimeout(() => {
+    try {
+      logTrafficAudit('TrafficView mount', filteredData.value as unknown as [])
+    } catch (e) {
+      console.warn('Audit error:', e)
+    }
+  }, 500)
 })
 </script>

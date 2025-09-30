@@ -23,14 +23,17 @@
             <div class="relative h-6 bg-[#FFF6F6] rounded-full overflow-hidden">
               <div
                 v-if="item.value < 0"
-                class="bg-[#8D0A38] rounded-l-full h-6 flex items-center justify-end text-white text-xs px-4"
+                :class="[
+                  'bg-[#8D0A38] h-6 flex items-center justify-center text-white text-xs px-4',
+                  Math.abs(item.value) * 5 >= 50 ? 'rounded-full' : 'rounded-l-full',
+                ]"
                 :style="{ width: Math.abs(item.value) * 5 + '%' }"
               >
                 {{ item.value }}%
               </div>
               <div
                 v-if="item.value > 0"
-                class="bg-[#FFB6B5] rounded-r-full h-6 flex items-center justify-start text-white text-xs px-4"
+                class="bg-[#FFB6B5] rounded-r-full h-6 flex items-center justify-center text-white text-xs px-4"
                 :style="{ width: item.value * 5 + '%' }"
               >
                 +{{ item.value }}%
@@ -55,14 +58,17 @@
             <div class="relative h-6 bg-[#FFF6F6] rounded-full overflow-hidden">
               <div
                 v-if="item.value < 0"
-                class="bg-[#8D0A38] rounded-l-full h-6 flex items-center justify-end text-white text-xs px-4"
+                :class="[
+                  'bg-[#8D0A38] h-6 flex items-center justify-center text-white text-xs px-4',
+                  Math.abs(item.value) * 5 >= 50 ? 'rounded-full' : 'rounded-l-full',
+                ]"
                 :style="{ width: Math.abs(item.value) * 5 + '%' }"
               >
                 {{ item.value }}%
               </div>
               <div
                 v-if="item.value > 0"
-                class="bg-[#FFB6B5] rounded-r-full h-6 flex items-center justify-start text-white text-xs px-4"
+                class="bg-[#FFB6B5] rounded-r-full h-6 flex items-center justify-center text-white text-xs px-4"
                 :style="{ width: item.value * 5 + '%' }"
               >
                 +{{ item.value }}%

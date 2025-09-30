@@ -10,44 +10,35 @@
         </div>
       </div>
     </div>
-    <!-- Graphiques à droite -->
+    <!-- Graphique à droite -->
     <div class="w-full md:w-2/3 bg-white border border-[#FFEAEA] p-6 rounded-lg">
-      <div class="space-y-6">
-        <div v-for="(item, index) in channelYoYData" :key="index" class="space-y-2">
-          <div class="flex justify-between text-sm text-[#FFF6F6]">
-            <span class="text-xs text-[#FFB6B5]">{{ item.label }}</span>
-            <span class="text-xs text-[#8D0A38]">
-              {{ item.value >= 0 ? '+' : '' }}{{ item.value }}%
-            </span>
-          </div>
-          <div class="relative h-6 bg-[#FFF6F6] rounded-full overflow-hidden">
-            <div
-              v-if="item.value < 0"
-              class="bg-[#8D0A38] rounded-l-full h-6 flex items-center justify-end text-white text-xs px-4"
-              :style="{ width: Math.abs(item.value) * 3 + '%' }"
-            >
-              {{ item.value }}%
-            </div>
-            <div
-              v-if="item.value > 0"
-              class="bg-[#FFB6B5] rounded-r-full h-6 flex items-center justify-start text-white text-xs px-4"
-              :style="{ width: item.value * 3 + '%' }"
-            >
-              +{{ item.value }}%
-            </div>
-          </div>
-        </div>
+      <div class="w-full h-60">
+        <LineChart
+          :data="lineData"
+          :yMin="-4"
+          :yMax="16"
+          :yStep="2"
+          yTickSuffix="%"
+          labelColor="#8D0A38"
+          gridColor="#FFF6F6"
+        />
       </div>
-      <!-- Graduation -->
-      <div class="flex justify-between text-[#8D0A38] text-xs mt-4 px-2 ml-40">
-        <span>-4%</span>
-        <span>-2%</span>
-        <span>0%</span>
-        <span>2%</span>
-        <span>4%</span>
-        <span>8%</span>
-        <span>12%</span>
-        <span>16%</span>
+      <div class="flex items-center gap-6 mt-2 text-xs text-[#8D0A38]">
+        <div class="flex items-center gap-2">
+          <span class="inline-block w-3 h-3 rounded-full" style="background: #ffb6b5"></span>
+          <span>Paid Search ({{ paidSearchValue >= 0 ? '+' : '' }}{{ paidSearchValue }}%)</span>
+        </div>
+        <div class="flex items-center gap-2">
+          <span class="inline-block w-3 h-3 rounded-full" style="background: #36c38a"></span>
+          <span
+            >Organic Search ({{ organicSearchValue >= 0 ? '+' : ''
+            }}{{ organicSearchValue }}%)</span
+          >
+        </div>
+        <div class="flex items-center gap-2">
+          <span class="inline-block w-3 h-3 rounded-full" style="background: #8d0a38"></span>
+          <span>Direct ({{ directValue >= 0 ? '+' : '' }}{{ directValue }}%)</span>
+        </div>
       </div>
     </div>
   </div>
@@ -56,6 +47,7 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import { useTrafficMetrics } from '@/composables/useTrafficMetrics'
+import LineChart from '@/components/charts/LineChart.vue'
 
 const { filteredData } = useTrafficMetrics()
 
@@ -93,4 +85,59 @@ const channelYoYData = computed(() => {
     { label: 'Paid Search', value: Math.round(avgPaidChange) },
   ]
 })
+
+// Données pour le LineChart - courbes séparées pour les canaux principaux
+const lineData = computed(() => {
+  const labels = channelYoYData.value.map((item) => item.label)
+
+  return {
+    labels,
+    datasets: [
+      {
+        label: 'Paid Search',
+        data: [0, 0, 0, 0, channelYoYData.value.find((c) => c.label === 'Paid Search')?.value ?? 0],
+        borderColor: '#FFB6B5',
+        backgroundColor: '#FFB6B5',
+        tension: 0.4,
+        pointRadius: 6,
+        pointHoverRadius: 8,
+      },
+      {
+        label: 'Organic Search',
+        data: [
+          channelYoYData.value.find((c) => c.label === 'Organic Search')?.value ?? 0,
+          0,
+          0,
+          0,
+          0,
+        ],
+        borderColor: '#36C38A',
+        backgroundColor: '#36C38A',
+        tension: 0.4,
+        pointRadius: 6,
+        pointHoverRadius: 8,
+      },
+      {
+        label: 'Direct',
+        data: [0, channelYoYData.value.find((c) => c.label === 'Direct')?.value ?? 0, 0, 0, 0],
+        borderColor: '#8D0A38',
+        backgroundColor: '#8D0A38',
+        tension: 0.4,
+        pointRadius: 6,
+        pointHoverRadius: 8,
+      },
+    ],
+  }
+})
+
+// Computed properties pour la légende
+const paidSearchValue = computed(
+  () => channelYoYData.value.find((c) => c.label === 'Paid Search')?.value ?? 0,
+)
+const organicSearchValue = computed(
+  () => channelYoYData.value.find((c) => c.label === 'Organic Search')?.value ?? 0,
+)
+const directValue = computed(
+  () => channelYoYData.value.find((c) => c.label === 'Direct')?.value ?? 0,
+)
 </script>

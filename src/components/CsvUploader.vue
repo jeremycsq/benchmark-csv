@@ -1,9 +1,9 @@
 <template>
   <div class="csv-uploader">
     <div class="upload-section">
-      <h3 class="text-lg font-semibold mb-4">Upload de fichier CSV</h3>
+      <h3 class="text-lg font-semibold mb-4">CSV File Upload</h3>
 
-      <!-- Zone de drop -->
+      <!-- Drop zone -->
       <div
         class="upload-zone"
         :class="{ dragover: isDragOver, uploading: uploading }"
@@ -39,20 +39,20 @@
 
           <div class="upload-text">
             <p class="text-lg font-medium text-gray-700">
-              {{ uploading ? 'Upload en cours...' : 'Glissez-déposez votre fichier CSV ici' }}
+              {{ uploading ? 'Uploading...' : 'Drag and drop your CSV file here' }}
             </p>
-            <p class="text-sm text-gray-500 mt-1">ou cliquez pour sélectionner un fichier</p>
+            <p class="text-sm text-gray-500 mt-1">or click to select a file</p>
           </div>
         </div>
       </div>
 
-      <!-- Barre de progression -->
+      <!-- Progress bar -->
       <div v-if="uploading" class="progress-bar mt-4">
         <div class="progress-fill" :style="{ width: `${progress}%` }"></div>
         <span class="progress-text">{{ progress }}%</span>
       </div>
 
-      <!-- Bouton template -->
+      <!-- Template button -->
       <div class="template-section mt-4">
         <button @click="downloadTemplate" class="template-btn" :disabled="uploading">
           <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -63,12 +63,12 @@
               d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
             ></path>
           </svg>
-          Télécharger le template CSV
+          Download CSV Template
         </button>
       </div>
     </div>
 
-    <!-- Résultats -->
+    <!-- Results -->
     <div v-if="uploadResult" class="result-section mt-6">
       <div class="result-card" :class="uploadResult.success ? 'success' : 'error'">
         <div class="result-header">
@@ -103,7 +103,7 @@
             </svg>
           </div>
           <div class="result-title">
-            {{ uploadResult.success ? 'Upload réussi' : "Erreur d'upload" }}
+            {{ uploadResult.success ? 'Upload successful' : 'Upload error' }}
           </div>
         </div>
 
@@ -112,11 +112,11 @@
         </div>
 
         <div v-if="uploadResult.inserted > 0" class="result-stats">
-          {{ uploadResult.inserted }} enregistrement(s) inséré(s)
+          {{ uploadResult.inserted }} record(s) inserted
         </div>
 
         <div v-if="uploadResult.errors.length > 0" class="result-errors">
-          <h4 class="error-title">Erreurs détectées :</h4>
+          <h4 class="error-title">Errors detected:</h4>
           <ul class="error-list">
             <li v-for="error in uploadResult.errors" :key="error" class="error-item">
               {{ error }}
@@ -183,7 +183,7 @@ const handleFile = async (file: File) => {
   if (!file.name.toLowerCase().endsWith('.csv')) {
     uploadResult.value = {
       success: false,
-      message: 'Veuillez sélectionner un fichier CSV',
+      message: 'Please select a CSV file',
       inserted: 0,
       errors: [],
     }
@@ -197,9 +197,9 @@ const handleFile = async (file: File) => {
   } catch (error) {
     uploadResult.value = {
       success: false,
-      message: "Erreur lors de l'upload du fichier",
+      message: 'Error during file upload',
       inserted: 0,
-      errors: [error instanceof Error ? error.message : 'Erreur inconnue'],
+      errors: [error instanceof Error ? error.message : 'Unknown error'],
     }
   }
 }

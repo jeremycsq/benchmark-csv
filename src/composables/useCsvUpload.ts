@@ -44,6 +44,110 @@ export function useCsvUpload(tableName: string = 'traffic') {
     const valid: TrafficData[] = []
     const errors: string[] = []
 
+    // Récupère la première valeur définie parmi plusieurs alias de colonnes
+    const pick = (row: Record<string, unknown>, keys: string[]): unknown => {
+      for (const key of keys) {
+        if (row[key] !== undefined && row[key] !== null && String(row[key]).trim() !== '') {
+          return row[key]
+        }
+      }
+      return undefined
+    }
+
+    const toNumber = (val: unknown): number => {
+      if (val === undefined || val === null || val === '') return NaN
+      const n = parseFloat(String(val).replace('%', '').trim())
+      return isNaN(n) ? NaN : n
+    }
+
+    // Normalise une ligne du CSV en clés attendues par TrafficData
+    const normalizeRow = (row: Record<string, unknown>) => {
+      const analysis_month = pick(row, ['analysis_month', 'ANALYSIS_MONTH'])
+      const country = pick(row, ['country', 'COUNTRY', 'COUNTRY_CODE'])
+      const industry = pick(row, ['industry', 'INDUSTRY'])
+      const device = pick(row, ['device', 'DEVICE', 'DEVICE_ID'])
+
+      // Valeurs numériques avec équivalences
+      const avg_daily_traffic =
+        pick(row, ['avg_daily_traffic', 'AVG_DAILY_TRAFFIC', 'OVERALL_AVG_DAILY_TRAFFIC']) ?? ''
+      const yoy_change = pick(row, ['yoy_change', 'OVERALL_YOY_CHANGE', 'TRAFFIC_YOY_CHANGE'])
+      const mom_change = pick(row, ['mom_change', 'OVERALL_MOM_CHANGE'])
+
+      let new_visitor_rate = pick(row, ['new_visitor_rate', 'NEW_VISITOR_RATE'])
+      let returning_visitor_rate = pick(row, ['returning_visitor_rate', 'RETURNING_VISITOR_RATE'])
+      let mobile_share = pick(row, ['mobile_share', 'MOBILE_SHARE'])
+      let paid_traffic_share = pick(row, ['paid_traffic_share', 'PAID_TRAFFIC_SHARE'])
+
+      const new_visitor_yoy_change = pick(row, ['new_visitor_yoy_change', 'NEW_VISITOR_YOY_CHANGE'])
+      const new_visitor_mom_change = pick(row, ['new_visitor_mom_change', 'NEW_VISITOR_MOM_CHANGE'])
+      const mobile_yoy_change = pick(row, ['mobile_yoy_change', 'MOBILE_YOY_CHANGE'])
+      const mobile_mom_change = pick(row, ['mobile_mom_change', 'MOBILE_MOM_CHANGE'])
+      const paid_traffic_yoy_change = pick(row, [
+        'paid_traffic_yoy_change',
+        'PAID_TRAFFIC_YOY_CHANGE',
+      ])
+      const paid_traffic_mom_change = pick(row, [
+        'paid_traffic_mom_change',
+        'PAID_SHARE_MOM_CHANGE',
+      ])
+
+      // JSON
+      const traffic_share_by_channel =
+        pick(row, [
+          'traffic_share_by_channel',
+          'TRAFFIC_SHARE_BY_CHANNEL',
+          'TRAFFIC_SHARE_BY_CHANNEL_JSON',
+        ]) ?? ''
+      const bounce_rate_by_channel =
+        pick(row, ['bounce_rate_by_channel', 'BOUNCE_RATE_BY_CHANNEL']) ?? ''
+      const channel_yoy_changes =
+        pick(row, ['channel_yoy_changes', 'TRAFFIC_YOY_CHANGE_BY_CHANNEL_JSON']) ?? ''
+      const device_distribution = pick(row, ['device_distribution', 'DEVICE_DISTRIBUTION']) ?? ''
+
+      // Rangs et projets
+      const percentile_rank = pick(row, ['percentile_rank', 'PERCENTILE_RANK']) ?? 0
+      const project_count = pick(row, ['project_count', 'PROJECT_COUNT']) ?? 0
+
+      // Normalisation pourcentages (si >1 alors convertir en ratio)
+      const asRatio = (v: unknown): number => {
+        const n = toNumber(v)
+        if (isNaN(n)) return NaN
+        return n > 1 ? n / 100 : n
+      }
+
+      new_visitor_rate = asRatio(new_visitor_rate)
+      returning_visitor_rate = asRatio(returning_visitor_rate)
+      mobile_share = asRatio(mobile_share)
+      paid_traffic_share = asRatio(paid_traffic_share)
+
+      return {
+        analysis_month,
+        country,
+        industry,
+        device,
+        avg_daily_traffic,
+        yoy_change,
+        mom_change,
+        new_visitor_rate,
+        returning_visitor_rate,
+        new_visitor_yoy_change,
+        new_visitor_mom_change,
+        mobile_share,
+        mobile_yoy_change,
+        mobile_mom_change,
+        paid_traffic_share,
+        paid_traffic_yoy_change,
+        paid_traffic_mom_change,
+        traffic_share_by_channel,
+        bounce_rate_by_channel,
+        channel_yoy_changes,
+        device_distribution,
+        percentile_rank,
+        project_count,
+        id: pick(row, ['id', 'ID']),
+      }
+    }
+
     csvData.forEach((row, index) => {
       try {
         // Debug: afficher les données reçues (seulement les 3 premières lignes)
@@ -52,29 +156,24 @@ export function useCsvUpload(tableName: string = 'traffic') {
           console.log(`Clés disponibles:`, Object.keys(row))
         }
 
-        // Validation des champs requis (seulement les champs vraiment obligatoires)
+        // Normaliser la ligne pour accepter différents schémas (MAJUSCULES, alias)
+        const normalized = normalizeRow(row)
+
+        // Validation des champs requis (strict minimum)
+        // Beaucoup de datasets n'ont pas les colonnes de variations YoY/MoM → on les rend optionnelles
         const requiredFields = [
           'analysis_month',
           'avg_daily_traffic',
-          'yoy_change',
-          'mom_change',
           'new_visitor_rate',
-          'returning_visitor_rate',
-          'new_visitor_yoy_change',
-          'new_visitor_mom_change',
           'mobile_share',
-          'mobile_yoy_change',
-          'mobile_mom_change',
           'paid_traffic_share',
-          'paid_traffic_yoy_change',
-          'paid_traffic_mom_change',
           'percentile_rank',
           'project_count',
         ]
 
         // Note: Les champs country, industry, device, et les champs JSONB sont optionnels
         const missingFields = requiredFields.filter((field) => {
-          const value = row[field]
+          const value = normalized[field as keyof typeof normalized]
           const isMissing =
             value === undefined ||
             value === null ||
@@ -93,42 +192,65 @@ export function useCsvUpload(tableName: string = 'traffic') {
 
         // Transformation des données
         const transformedData: Omit<TrafficData, 'calculation_timestamp'> = {
-          analysis_month: String(row.analysis_month).trim(),
-          country: row.country ? String(row.country).trim() : '',
-          industry: row.industry ? String(row.industry).trim() : '',
-          device: row.device ? String(row.device).trim() : '',
-          avg_daily_traffic: parseFloat(String(row.avg_daily_traffic)),
-          yoy_change: parseFloat(String(row.yoy_change)),
-          mom_change: String(row.mom_change).trim(),
-          new_visitor_rate: parseFloat(String(row.new_visitor_rate)),
-          returning_visitor_rate: parseFloat(String(row.returning_visitor_rate)),
-          new_visitor_yoy_change: parseFloat(String(row.new_visitor_yoy_change)),
-          new_visitor_mom_change: String(row.new_visitor_mom_change).trim(),
-          mobile_share: parseFloat(String(row.mobile_share)),
-          mobile_yoy_change: parseFloat(String(row.mobile_yoy_change)),
-          mobile_mom_change: String(row.mobile_mom_change).trim(),
-          paid_traffic_share: parseFloat(String(row.paid_traffic_share)),
-          paid_traffic_yoy_change: parseFloat(String(row.paid_traffic_yoy_change)),
-          paid_traffic_mom_change: String(row.paid_traffic_mom_change).trim(),
+          analysis_month: String(normalized.analysis_month).trim(),
+          country: normalized.country ? String(normalized.country).trim() : '',
+          industry: normalized.industry ? String(normalized.industry).trim() : '',
+          device: normalized.device ? String(normalized.device).trim() : '',
+          avg_daily_traffic: toNumber(normalized.avg_daily_traffic),
+          yoy_change: isNaN(toNumber(normalized.yoy_change)) ? 0 : toNumber(normalized.yoy_change),
+          mom_change:
+            normalized.mom_change !== undefined && String(normalized.mom_change).trim() !== ''
+              ? String(normalized.mom_change).trim()
+              : '0%',
+          new_visitor_rate: Number(normalized.new_visitor_rate),
+          returning_visitor_rate: Number(normalized.returning_visitor_rate),
+          new_visitor_yoy_change: isNaN(toNumber(normalized.new_visitor_yoy_change))
+            ? 0
+            : toNumber(normalized.new_visitor_yoy_change),
+          new_visitor_mom_change:
+            normalized.new_visitor_mom_change !== undefined &&
+            String(normalized.new_visitor_mom_change).trim() !== ''
+              ? String(normalized.new_visitor_mom_change).trim()
+              : '0%',
+          mobile_share: Number(normalized.mobile_share),
+          mobile_yoy_change: isNaN(toNumber(normalized.mobile_yoy_change))
+            ? 0
+            : toNumber(normalized.mobile_yoy_change),
+          mobile_mom_change:
+            normalized.mobile_mom_change !== undefined &&
+            String(normalized.mobile_mom_change).trim() !== ''
+              ? String(normalized.mobile_mom_change).trim()
+              : '0%',
+          paid_traffic_share: Number(normalized.paid_traffic_share),
+          paid_traffic_yoy_change: isNaN(toNumber(normalized.paid_traffic_yoy_change))
+            ? 0
+            : toNumber(normalized.paid_traffic_yoy_change),
+          paid_traffic_mom_change:
+            normalized.paid_traffic_mom_change !== undefined &&
+            String(normalized.paid_traffic_mom_change).trim() !== ''
+              ? String(normalized.paid_traffic_mom_change).trim()
+              : '0%',
           traffic_share_by_channel:
-            row.traffic_share_by_channel && String(row.traffic_share_by_channel).trim() !== ''
-              ? JSON.parse(String(row.traffic_share_by_channel))
+            normalized.traffic_share_by_channel &&
+            String(normalized.traffic_share_by_channel).trim() !== ''
+              ? JSON.parse(String(normalized.traffic_share_by_channel))
               : {},
           bounce_rate_by_channel:
-            row.bounce_rate_by_channel && String(row.bounce_rate_by_channel).trim() !== ''
-              ? JSON.parse(String(row.bounce_rate_by_channel))
+            normalized.bounce_rate_by_channel &&
+            String(normalized.bounce_rate_by_channel).trim() !== ''
+              ? JSON.parse(String(normalized.bounce_rate_by_channel))
               : {},
           channel_yoy_changes:
-            row.channel_yoy_changes && String(row.channel_yoy_changes).trim() !== ''
-              ? JSON.parse(String(row.channel_yoy_changes))
+            normalized.channel_yoy_changes && String(normalized.channel_yoy_changes).trim() !== ''
+              ? JSON.parse(String(normalized.channel_yoy_changes))
               : {},
           device_distribution:
-            row.device_distribution && String(row.device_distribution).trim() !== ''
-              ? JSON.parse(String(row.device_distribution))
+            normalized.device_distribution && String(normalized.device_distribution).trim() !== ''
+              ? JSON.parse(String(normalized.device_distribution))
               : {},
-          percentile_rank: parseInt(String(row.percentile_rank)),
-          project_count: parseInt(String(row.project_count)),
-          id: row.id ? parseInt(String(row.id)) : 0,
+          percentile_rank: parseInt(String(normalized.percentile_rank)),
+          project_count: parseInt(String(normalized.project_count)),
+          id: normalized.id ? parseInt(String(normalized.id as string)) : 0,
         }
 
         // Validation des types

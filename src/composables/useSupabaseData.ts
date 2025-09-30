@@ -51,12 +51,41 @@ export function useSupabaseData() {
   const data = ref<TrafficData[]>([])
   const loading = ref(false)
   const error = ref<string | null>(null)
+  const totalRecords = ref(0)
   const filterOptions = ref<FilterOptions>({
     countries: [],
     industries: [],
     devices: [],
     analysis_months: [],
   })
+
+  // Récupérer le nombre total d'enregistrements de toutes les tables
+  const fetchTotalRecords = async () => {
+    try {
+      const tables = ['traffic', 'engagement', 'frustration', 'conversion']
+      let total = 0
+
+      for (const table of tables) {
+        const { count, error: countError } = await supabase
+          .from(table)
+          .select('*', { count: 'exact', head: true })
+
+        if (countError) {
+          console.warn(`Erreur lors du comptage de la table ${table}:`, countError)
+        } else {
+          total += count || 0
+          console.log(`Table ${table}: ${count || 0} enregistrements`)
+        }
+      }
+
+      totalRecords.value = total
+      console.log(`Total de tous les enregistrements: ${total}`)
+      return total
+    } catch (err) {
+      console.error('Erreur lors du calcul du total:', err)
+      return 0
+    }
+  }
 
   // Récupérer toutes les données
   const fetchAllData = async () => {
@@ -67,6 +96,7 @@ export function useSupabaseData() {
       console.log('useSupabaseData - Tentative de récupération des données...')
       console.log('useSupabaseData - Client Supabase:', supabase)
 
+      // Récupérer les données de traffic
       const { data: result, error: fetchError } = await supabase
         .from('traffic')
         .select('*')
@@ -88,6 +118,10 @@ export function useSupabaseData() {
       console.log('useSupabaseData - Première ligne de données:', result?.[0])
       data.value = result || []
       console.log('useSupabaseData - data.value après assignation:', data.value.length)
+
+      // Récupérer le total de tous les enregistrements
+      await fetchTotalRecords()
+
       updateFilterOptions()
 
       return result
@@ -267,9 +301,11 @@ export function useSupabaseData() {
     loading: computed(() => loading.value),
     error: computed(() => error.value),
     filterOptions: computed(() => filterOptions.value),
+    totalRecords: computed(() => totalRecords.value),
 
     // Méthodes
     fetchAllData,
+    fetchTotalRecords,
     getFilteredData,
     insertData,
     updateData,

@@ -15,9 +15,9 @@
             <span class="text-xs text-[#FFB6B5]">Desktop</span>
             <span class="text-xs text-[#8D0A38]">{{ deviceDistribution.desktop }}%</span>
           </div>
-          <div class="w-full bg-[#FFF6F6] rounded-full h-2">
+          <div class="w-full bg-[#FFF6F6] rounded-full h-5">
             <div
-              class="bg-[#8D0A38] h-2 rounded-full transition-all duration-500"
+              class="bg-[#8D0A38] h-5 rounded-full transition-all duration-500"
               :style="{ width: deviceDistribution.desktop + '%' }"
             ></div>
           </div>
@@ -29,24 +29,10 @@
             <span class="text-xs text-[#FFB6B5]">Mobile</span>
             <span class="text-xs text-[#8D0A38]">{{ deviceDistribution.mobile }}%</span>
           </div>
-          <div class="w-full bg-[#FFF6F6] rounded-full h-2">
+          <div class="w-full bg-[#FFF6F6] rounded-full h-5">
             <div
-              class="bg-[#FFB6B5] h-2 rounded-full transition-all duration-500"
+              class="bg-[#FFB6B5] h-5 rounded-full transition-all duration-500"
               :style="{ width: deviceDistribution.mobile + '%' }"
-            ></div>
-          </div>
-        </div>
-
-        <!-- Tablet -->
-        <div class="space-y-2">
-          <div class="flex justify-between text-sm text-[#FFF6F6]">
-            <span class="text-xs text-[#FFB6B5]">Tablet</span>
-            <span class="text-xs text-[#8D0A38]">{{ deviceDistribution.tablet }}%</span>
-          </div>
-          <div class="w-full bg-[#FFF6F6] rounded-full h-2">
-            <div
-              class="bg-[#FFDCDB] h-2 rounded-full transition-all duration-500"
-              :style="{ width: deviceDistribution.tablet + '%' }"
             ></div>
           </div>
         </div>
@@ -68,7 +54,31 @@ const deviceDistribution = computed(() => {
 
   if (!filteredData.value.length) {
     console.log('TrafficOverview - Pas de données filtrées')
-    return { desktop: 0, mobile: 0, tablet: 0 }
+    return { desktop: 0, mobile: 0 }
+  }
+
+  // Cas 1: données agrégées 'all_devices' → utiliser mobile_share pour répartir
+  const hasAllDevices = filteredData.value.some(
+    (item: Record<string, unknown>) => String(item.device).toLowerCase() === 'all_devices',
+  )
+
+  if (hasAllDevices) {
+    const values = filteredData.value
+      .filter(
+        (item: Record<string, unknown>) => String(item.device).toLowerCase() === 'all_devices',
+      )
+      .map((item: Record<string, unknown>) => Number(item.mobile_share))
+      .filter((v: number) => !isNaN(v))
+
+    const avgMobile =
+      values.length > 0 ? values.reduce((s: number, v: number) => s + v, 0) / values.length : 0
+
+    const result = {
+      desktop: Math.round((1 - avgMobile) * 100),
+      mobile: Math.round(avgMobile * 100),
+    }
+    console.log('✅ TrafficOverview - Résultat (all_devices):', result)
+    return result
   }
 
   // Debug: voir les valeurs de device disponibles
@@ -81,12 +91,11 @@ const deviceDistribution = computed(() => {
   // Compter le nombre total d'entrées par device
   const deviceCounts = filteredData.value.reduce(
     (acc: Record<string, number>, item: Record<string, unknown>) => {
-      if (item.device === 'desktop') {
+      const device = String(item.device).toLowerCase()
+      if (device === '1' || device === 'desktop') {
         acc.desktop = (acc.desktop || 0) + 1
-      } else if (item.device === 'mobile') {
+      } else if (device === '2' || device === 'mobile') {
         acc.mobile = (acc.mobile || 0) + 1
-      } else if (item.device === 'tablet') {
-        acc.tablet = (acc.tablet || 0) + 1
       }
       return acc
     },
@@ -95,17 +104,16 @@ const deviceDistribution = computed(() => {
 
   console.log('TrafficOverview - Comptes par device:', deviceCounts)
 
-  const total = deviceCounts.desktop + deviceCounts.mobile + deviceCounts.tablet
+  const total = (deviceCounts.desktop || 0) + (deviceCounts.mobile || 0)
   console.log('TrafficOverview - Total:', total)
 
   if (total === 0) {
-    return { desktop: 0, mobile: 0, tablet: 0 }
+    return { desktop: 0, mobile: 0 }
   }
 
   const result = {
-    desktop: Math.round((deviceCounts.desktop / total) * 100),
-    mobile: Math.round((deviceCounts.mobile / total) * 100),
-    tablet: Math.round((deviceCounts.tablet / total) * 100),
+    desktop: Math.round(((deviceCounts.desktop || 0) / total) * 100),
+    mobile: Math.round(((deviceCounts.mobile || 0) / total) * 100),
   }
 
   console.log('✅ TrafficOverview - Résultat final:', result)

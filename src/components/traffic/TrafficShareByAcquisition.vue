@@ -57,11 +57,11 @@
 import { computed } from 'vue'
 import { useTrafficMetrics } from '@/composables/useTrafficMetrics'
 
-const { filteredData } = useTrafficMetrics()
+const { acquisitionMetrics } = useTrafficMetrics()
 
-// Calculer les données d'acquisition depuis Supabase
+// Utiliser directement les métriques d'acquisition calculées selon le type de visiteur
 const acquisitionData = computed(() => {
-  if (!filteredData.value.length) {
+  if (!acquisitionMetrics.value || acquisitionMetrics.value.length === 0) {
     // Données de test avec valeurs négatives et positives
     return [
       { label: 'Organic Search', value: -1371 },
@@ -72,54 +72,14 @@ const acquisitionData = computed(() => {
     ]
   }
 
-  // Calculer la moyenne des parts de trafic payant
-  const avgPaidTrafficShare =
-    filteredData.value.reduce(
-      (sum: number, item: Record<string, unknown>) => sum + (Number(item.paid_traffic_share) || 0),
-      0,
-    ) / filteredData.value.length
-
-  // Simuler une répartition des canaux d'acquisition avec variations YoY
-  // En réalité, il faudrait des champs spécifiques dans la base de données
-  const organicShare = Math.round((1 - avgPaidTrafficShare) * 0.5 * 100)
-  const directShare = Math.round((1 - avgPaidTrafficShare) * 0.3 * 100)
-  const socialShare = Math.round((1 - avgPaidTrafficShare) * 0.1 * 100)
-  const emailShare = Math.round((1 - avgPaidTrafficShare) * 0.05 * 100)
-  const paidShare = Math.round(avgPaidTrafficShare * 100)
-
-  // Appliquer des variations pour simuler des changements YoY
-  const variations = [-15, -25, -10, -5, 30] // Variations en pourcentage
-
-  return [
-    { label: 'Organic Search', value: Math.round(organicShare * (1 + variations[0] / 100)) },
-    { label: 'Direct', value: Math.round(directShare * (1 + variations[1] / 100)) },
-    { label: 'Social', value: Math.round(socialShare * (1 + variations[2] / 100)) },
-    { label: 'Email', value: Math.round(emailShare * (1 + variations[3] / 100)) },
-    { label: 'Paid Search', value: Math.round(paidShare * (1 + variations[4] / 100)) },
-  ]
+  return acquisitionMetrics.value
 })
 
 const getBarColor = (index: number, isPositive: boolean = true) => {
-  const positiveColors = [
-    'bg-[#8D0A38]',
-    'bg-[#A31242]',
-    'bg-[#FFB6B5]',
-    'bg-[#FFDCDB]',
-    'bg-[#FFF6F6]',
-  ]
-
-  const negativeColors = [
-    'bg-[#DC2626]',
-    'bg-[#EF4444]',
-    'bg-[#F87171]',
-    'bg-[#FCA5A5]',
-    'bg-[#FECACA]',
-  ]
-
   if (isPositive) {
-    return positiveColors[index % positiveColors.length]
+    return 'bg-[#8D0A38]'
   } else {
-    return negativeColors[index % negativeColors.length]
+    return 'bg-[#FFB6B5]'
   }
 }
 </script>

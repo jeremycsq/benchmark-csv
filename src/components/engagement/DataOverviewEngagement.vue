@@ -144,17 +144,28 @@
 import { computed } from 'vue'
 import { pageConfigs, type PageMetrics } from '@/config/pageConfig'
 import { useGlobalFiltersStore } from '@/stores/globalFilters'
+import { useEngagementMetrics } from '@/composables/useEngagementMetrics'
 
 interface Props {
-  pageType: 'engagement' | 'frustration' | 'conversion'
+  engagementStore?: any // TODO: Typer correctement le store
 }
 
 const props = defineProps<Props>()
 
 const globalFilters = useGlobalFiltersStore()
 
+// Connexion aux données Supabase pour l'engagement
+const { engagementMetrics, yoyChanges, momChanges, isLoading, error } = useEngagementMetrics()
+
+// Debug: afficher les données reçues
+console.log('DataOverviewEngagement - engagementMetrics:', engagementMetrics.value)
+console.log('DataOverviewEngagement - yoyChanges:', yoyChanges.value)
+console.log('DataOverviewEngagement - momChanges:', momChanges.value)
+console.log('DataOverviewEngagement - isLoading:', isLoading.value)
+console.log('DataOverviewEngagement - error:', error.value)
+
 const pageConfig = computed<PageMetrics>(() => {
-  return pageConfigs[props.pageType]
+  return pageConfigs.engagement
 })
 
 const selectedMonth = computed(() => globalFilters.selectedMonth)
@@ -162,32 +173,39 @@ const selectedMonth = computed(() => globalFilters.selectedMonth)
 const dynamicTitle = computed(() => {
   const month = selectedMonth.value
 
-  // Mapping des titres par page
+  // Mapping des titres pour engagement
   const titles = {
-    engagement: {
-      all: 'How has Engagement evolved across sectors this year?',
-      month: (m: string) => `How has Engagement evolved in ${m} ?`,
-    },
-    frustration: {
-      all: 'How has Frustration evolved across sectors this year?',
-      month: (m: string) => `How has Frustration evolved in ${m} ?`,
-    },
-    conversion: {
-      all: 'How has Conversion evolved across sectors this year?',
-      month: (m: string) => `How has Conversion evolved in ${m} ?`,
-    },
+    all: 'How have trends changed since last year?',
+    month: (m: string) => `How has Engagement evolved in ${m} ?`,
   }
 
   if (!month || month === 'All Months') {
-    return titles[props.pageType].all
+    return titles.all
   } else {
-    return titles[props.pageType].month(month)
+    return titles.month(month)
   }
 })
 
-// Valeurs par défaut pour les autres types de pages
-// TODO: Implémenter les composables spécifiques pour engagement, conversion, frustration
+// Valeurs calculées depuis Supabase pour engagement
 const realValues = computed(() => {
+  if (yoyChanges.value && momChanges.value) {
+    return {
+      yoy: [
+        yoyChanges.value.pageviewsPerSession,
+        yoyChanges.value.newVisitorPageviews,
+        yoyChanges.value.timePerSession,
+        yoyChanges.value.scrollRate,
+      ],
+      mom: [
+        momChanges.value.pageviewsPerSession,
+        momChanges.value.newVisitorPageviews,
+        momChanges.value.timePerSession,
+        momChanges.value.scrollRate,
+      ],
+    }
+  }
+
+  // Valeurs par défaut si pas de données
   return {
     yoy: [0, 0, 0, 0],
     mom: [0, 0, 0, 0],
@@ -195,24 +213,7 @@ const realValues = computed(() => {
 })
 
 // Fonction pour formater les valeurs avec le bon format selon le type
-const formatValue = (
-  value: number,
-  metric: { value: string },
-  pageType: string,
-  index: number,
-): string => {
-  // Pour les métriques de temps (Load Time Frustration)
-  if (pageType === 'frustration' && index === 1) {
-    const minutes = Math.floor(value / 60)
-    const seconds = value % 60
-    return `${minutes.toString().padStart(2, '0')}min${seconds.toString().padStart(2, '0')}`
-  }
-
-  // Pour les scores de frustration
-  if (pageType === 'frustration' && index === 0) {
-    return value.toString()
-  }
-
+const formatValue = (value: number, metric: { value: string }, index: number): string => {
   // Pour les pourcentages
   const sign = value >= 0 ? '+' : ''
   return `${sign}${value}%`
@@ -227,7 +228,7 @@ const getMetricValue = (
   // Utiliser les vraies valeurs si disponibles
   if (realValues.value) {
     const realValue = realValues.value[period][index]
-    return formatValue(realValue, metric, props.pageType, index)
+    return formatValue(realValue, metric, index)
   }
 
   // Sinon, valeur statique du config

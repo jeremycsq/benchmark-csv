@@ -9,17 +9,17 @@ export const radialBenchmarkChartData: Record<string, RadialBenchmarkChartData> 
   overall: {
     label: 'Overall',
     values: [168, 125, 85],
-    colors: ['#E5D0F6', '#A259D9', '#7C3AED'],
+    colors: ['#C1E3B1', '#2E614F', '#6D9A7A'],
   },
   newVisitors: {
     label: 'New Visitors',
     values: [155, 115, 95],
-    colors: ['#E5D0F6', '#A259D9', '#7C3AED'],
+    colors: ['#C1E3B1', '#2E614F', '#6D9A7A'],
   },
   returningVisitors: {
     label: 'Returning Visitors',
     values: [178, 135, 105],
-    colors: ['#E5D0F6', '#A259D9', '#7C3AED'],
+    colors: ['#C1E3B1', '#2E614F', '#6D9A7A'],
   },
 }
 
@@ -41,17 +41,17 @@ export function randomizeRadialBenchmarkChartData(/* filters: { country, industr
     overall: {
       label: 'Overall',
       values: randomValues(80, 180),
-      colors: ['#E5D0F6', '#A259D9', '#7C3AED'],
+      colors: ['#C1E3B1', '#2E614F', '#6D9A7A'],
     },
     newVisitors: {
       label: 'New Visitors',
       values: randomValues(80, 180),
-      colors: ['#E5D0F6', '#A259D9', '#7C3AED'],
+      colors: ['#C1E3B1', '#2E614F', '#6D9A7A'],
     },
     returningVisitors: {
       label: 'Returning Visitors',
       values: randomValues(80, 180),
-      colors: ['#E5D0F6', '#A259D9', '#7C3AED'],
+      colors: ['#C1E3B1', '#2E614F', '#6D9A7A'],
     },
   }
 }

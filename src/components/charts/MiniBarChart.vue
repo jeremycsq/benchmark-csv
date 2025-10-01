@@ -38,7 +38,7 @@
   <div v-else class="flex flex-col items-center w-full">
     <div class="flex flex-row items-end justify-center gap-3 w-full h-20">
       <div class="flex flex-col items-center w-1/4">
-        <span class="text-xs mb-1">{{
+        <span class="text-xs mb-1" :style="{ color: valueColor || '#000' }">{{
           display ? display((values || defaultValues)[0]) : (values || defaultValues)[0].toFixed(2)
         }}</span>
         <div
@@ -47,7 +47,7 @@
         ></div>
       </div>
       <div class="flex flex-col items-center w-1/4">
-        <span class="text-xs mb-1">{{
+        <span class="text-xs mb-1" :style="{ color: valueColor || '#000' }">{{
           display ? display((values || defaultValues)[1]) : (values || defaultValues)[1].toFixed(2)
         }}</span>
         <div
@@ -56,7 +56,7 @@
         ></div>
       </div>
       <div class="flex flex-col items-center w-1/4">
-        <span class="text-xs mb-1">{{
+        <span class="text-xs mb-1" :style="{ color: valueColor || '#000' }">{{
           display ? display((values || defaultValues)[2]) : (values || defaultValues)[2].toFixed(2)
         }}</span>
         <div
@@ -76,7 +76,7 @@
         >75th</span
       >
     </div>
-    <div class="text-xs text-[#000] mt-4">{{ label }}</div>
+    <div class="text-xs mt-4" :style="{ color: metricLabelColor || '#000' }">{{ label }}</div>
   </div>
 </template>
 
@@ -89,6 +89,8 @@ const props = defineProps<{
   label?: string
   display?: (val: number) => string
   labelColor?: string
+  valueColor?: string
+  metricLabelColor?: string
   variant?: string
   variantValues?: [number, number, number][]
 }>()

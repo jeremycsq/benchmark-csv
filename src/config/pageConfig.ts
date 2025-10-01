@@ -66,8 +66,8 @@ export const pageConfigs: Record<string, PageMetrics> = {
     ],
   },
   engagement: {
-    title: 'How is your engagement looking this month?',
-    titleColor: '#A259D9',
+    title: 'How have trends changed since last year?',
+    titleColor: '#2E614F',
     yoyMetrics: [
       {
         value: '-10,5%',

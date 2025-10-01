@@ -5,7 +5,7 @@
       <div
         class="flex flex-row items-center justify-start gap-4 border-b border-[#FFEAE3] pb-4 w-full"
       >
-        <div class="font-newedge pt-1 font-medium">
+        <div class="font-newedge pt-1 font-medium" style="border-radius: 4px">
           Traffic share by acquisition channel YoY change
         </div>
       </div>

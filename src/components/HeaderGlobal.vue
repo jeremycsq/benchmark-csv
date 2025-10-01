@@ -88,10 +88,8 @@
           class="font-semibold px-4 py-2 rounded transition-all duration-300"
           :class="{
             'bg-[#8D0A38] text-white hover:bg-[#72082C]': $route.path === '/traffic',
-            'bg-gradient-to-r from-[#8B5CF6] to-[#A855F7] text-white hover:from-[#7C3AED] hover:to-[#9333EA]':
-              $route.path === '/engagement',
-            'bg-gradient-to-r from-[#EB6909] to-[#F76F09] text-white hover:from-[#C15607] hover:to-[#DC6309]':
-              $route.path === '/frustration',
+            'bg-[#2E614F] text-white hover:bg-[#1F4A3A]': $route.path === '/engagement',
+            'bg-[#EB6909] text-white hover:bg-[#C15607]': $route.path === '/frustration',
             'bg-gradient-to-r from-[#0A95B3] to-[#0EA9CC] text-white hover:from-[#086C82] hover:to-[#068DAB]':
               $route.path === '/conversion',
           }"
@@ -187,8 +185,8 @@
       to="/engagement"
       class="py-3 font-medium transition-colors"
       :class="{
-        'text-purple-700': $route.path === '/engagement',
-        'text-gray-400 hover:text-purple-700': $route.path !== '/engagement',
+        'text-[#2E614F]': $route.path === '/engagement',
+        'text-gray-400 hover:text-[#2E614F]': $route.path !== '/engagement',
       }"
     >
       Engagement
@@ -390,7 +388,7 @@ const downloadModalTheme = computed(() => {
 // Couleur du logo selon la page
 const logoColor = computed(() => {
   if (route.path === '/traffic') return '#8D0A38'
-  if (route.path === '/engagement') return '#8B5CF6'
+  if (route.path === '/engagement') return '#2E614F'
   if (route.path === '/frustration') return '#EB6909'
   if (route.path === '/conversion') return '#0A95B3'
   return '#8D0A38' // Par défaut, couleur traffic

@@ -30,10 +30,10 @@ function randomMMSS(min: number, max: number): string {
 export const barChartConfigs: Record<string, BarChartConfig> = {
   engagement: {
     title: 'Engagement',
-    badgeColor: '#E5D0F6',
-    badgeTextColor: '#A259D9',
+    badgeColor: '#E9F5E4',
+    badgeTextColor: '#2E614F',
     labels: ['25th', 'Benchmark', '75th'],
-    labelColors: ['#A259D9', '#7C3AED', '#C084FC'],
+    labelColors: ['#C1E3B1', '#2E614F', '#6D9A7A'],
     data: [
       {
         label: 'Pageviews per Session',

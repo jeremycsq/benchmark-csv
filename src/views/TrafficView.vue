@@ -2,7 +2,7 @@
   <div class="min-h-screen">
     <!-- Metrics Section avec fond blanc -->
     <transition name="fade-scale" mode="out-in">
-      <DataOverview pageType="traffic" class="reveal-up reveal-fade" :key="$route.path" />
+      <DataOverviewTraffic class="reveal-up reveal-fade" :key="$route.path" />
     </transition>
 
     <!-- Tout le reste de la page avec fond #FFF6F6 -->
@@ -19,7 +19,7 @@
           <div class="flex items-center gap-4"></div>
         </div>
         <span
-          class="bg-[#FFDCDB] text-[#8D0A38] px-2 py-1 rounded-xl text-sm font-semibold mt-4 inline-block"
+          class="bg-[#FFDCDB] text-[#8D0A38] px-2 py-1 rounded-md text-sm font-semibold mt-4 inline-block"
         >
           Overview
         </span>
@@ -28,28 +28,28 @@
 
         <!-- Nouveau bloc benchmark graphique -->
         <span
-          class="bg-[#FFDCDB] text-[#8D0A38] px-2 py-1 rounded-xl text-sm font-semibold mt-4 inline-block reveal-up"
+          class="bg-[#FFDCDB] text-[#8D0A38] px-2 py-1 rounded-md text-sm font-semibold mt-4 inline-block reveal-up"
         >
           Traffic share by types
         </span>
         <TrafficShareByTypes />
         <!-- Nouveau bloc "Change" -->
         <span
-          class="bg-[#FFDCDB] text-[#8D0A38] px-2 py-1 rounded-xl text-sm font-semibold mt-4 inline-block reveal-up"
+          class="bg-[#FFDCDB] text-[#8D0A38] px-2 py-1 rounded-md text-sm font-semibold mt-4 inline-block reveal-up"
         >
           Traffic change by type
         </span>
         <TrafficChangeByType />
         <!-- Nouveau bloc "Change - Traffic Share" -->
         <span
-          class="bg-[#FFDCDB] text-[#8D0A38] px-2 py-1 rounded-xl text-sm font-semibold mt-4 inline-block reveal-up"
+          class="bg-[#FFDCDB] text-[#8D0A38] px-2 py-1 rounded-md text-sm font-semibold mt-4 inline-block reveal-up"
         >
           Traffic share by major acquisition source
         </span>
         <TrafficShareByAcquisition />
         <!-- Section: Traffic share by acquisition type MoM change -->
         <span
-          class="bg-[#FFDCDB] text-[#8D0A38] px-2 py-1 rounded-xl text-sm font-semibold mt-4 inline-block reveal-up"
+          class="bg-[#FFDCDB] text-[#8D0A38] px-2 py-1 rounded-md text-sm font-semibold mt-4 inline-block reveal-up"
         >
           Traffic share by acquisition type MoM change
         </span>
@@ -57,7 +57,7 @@
 
         <!-- Section: Traffic share by acquisition channel YoY change -->
         <span
-          class="bg-[#FFDCDB] text-[#8D0A38] px-2 py-1 rounded-xl text-sm font-semibold mt-4 inline-block reveal-up"
+          class="bg-[#FFDCDB] text-[#8D0A38] px-2 py-1 rounded-md text-sm font-semibold mt-4 inline-block reveal-up"
         >
           Traffic share by acquisition channel YoY change
         </span>
@@ -69,8 +69,8 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted } from 'vue'
-import DataOverview from '@/components/DataOverview.vue'
+import { onMounted } from 'vue'
+import DataOverviewTraffic from '@/components/DataOverviewTraffic.vue'
 import { useScrollReveal } from '@/composables/useScrollReveal'
 import { useGlobalFiltersStore } from '@/stores/globalFilters'
 import { useTrafficMetrics } from '@/composables/useTrafficMetrics'
@@ -103,19 +103,9 @@ useScrollReveal('.reveal-fade', {
 })
 
 const globalFilters = useGlobalFiltersStore()
-const { avgDailyTraffic, filteredData } = useTrafficMetrics()
+const { filteredData } = useTrafficMetrics()
 
-// Calculer la valeur d'en-tête depuis les données Supabase
-const headerValue = computed(() => Math.round(avgDailyTraffic.value))
-
-// Texte dynamique selon le mois sélectionné
-enum HeaderText {
-  ThisYear = 'This year',
-  UpFromLastMonth = '⬆ Up from last month',
-}
-const headerText = computed(() =>
-  globalFilters.selectedMonth === 'All Months' ? HeaderText.ThisYear : HeaderText.UpFromLastMonth,
-)
+// Ces variables sont maintenant gérées par le composant DataOverviewTraffic
 
 // Initialiser les données Supabase
 onMounted(() => {

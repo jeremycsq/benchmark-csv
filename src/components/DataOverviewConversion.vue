@@ -144,17 +144,16 @@
 import { computed } from 'vue'
 import { pageConfigs, type PageMetrics } from '@/config/pageConfig'
 import { useGlobalFiltersStore } from '@/stores/globalFilters'
-
-interface Props {
-  pageType: 'engagement' | 'frustration' | 'conversion'
-}
-
-const props = defineProps<Props>()
+// TODO: Importer le composable useConversionMetrics quand il sera créé
+// import { useConversionMetrics } from '@/composables/useConversionMetrics'
 
 const globalFilters = useGlobalFiltersStore()
 
+// TODO: Connexion aux données Supabase pour la conversion
+// const { conversionMetrics, yoyChanges, isLoading, error } = useConversionMetrics()
+
 const pageConfig = computed<PageMetrics>(() => {
-  return pageConfigs[props.pageType]
+  return pageConfigs.conversion
 })
 
 const selectedMonth = computed(() => globalFilters.selectedMonth)
@@ -162,31 +161,21 @@ const selectedMonth = computed(() => globalFilters.selectedMonth)
 const dynamicTitle = computed(() => {
   const month = selectedMonth.value
 
-  // Mapping des titres par page
+  // Mapping des titres pour conversion
   const titles = {
-    engagement: {
-      all: 'How has Engagement evolved across sectors this year?',
-      month: (m: string) => `How has Engagement evolved in ${m} ?`,
-    },
-    frustration: {
-      all: 'How has Frustration evolved across sectors this year?',
-      month: (m: string) => `How has Frustration evolved in ${m} ?`,
-    },
-    conversion: {
-      all: 'How has Conversion evolved across sectors this year?',
-      month: (m: string) => `How has Conversion evolved in ${m} ?`,
-    },
+    all: 'How has Conversion evolved across sectors this year?',
+    month: (m: string) => `How has Conversion evolved in ${m} ?`,
   }
 
   if (!month || month === 'All Months') {
-    return titles[props.pageType].all
+    return titles.all
   } else {
-    return titles[props.pageType].month(month)
+    return titles.month(month)
   }
 })
 
-// Valeurs par défaut pour les autres types de pages
-// TODO: Implémenter les composables spécifiques pour engagement, conversion, frustration
+// Valeurs par défaut pour conversion
+// TODO: Remplacer par les vraies valeurs depuis Supabase
 const realValues = computed(() => {
   return {
     yoy: [0, 0, 0, 0],
@@ -195,24 +184,7 @@ const realValues = computed(() => {
 })
 
 // Fonction pour formater les valeurs avec le bon format selon le type
-const formatValue = (
-  value: number,
-  metric: { value: string },
-  pageType: string,
-  index: number,
-): string => {
-  // Pour les métriques de temps (Load Time Frustration)
-  if (pageType === 'frustration' && index === 1) {
-    const minutes = Math.floor(value / 60)
-    const seconds = value % 60
-    return `${minutes.toString().padStart(2, '0')}min${seconds.toString().padStart(2, '0')}`
-  }
-
-  // Pour les scores de frustration
-  if (pageType === 'frustration' && index === 0) {
-    return value.toString()
-  }
-
+const formatValue = (value: number, metric: { value: string }, index: number): string => {
   // Pour les pourcentages
   const sign = value >= 0 ? '+' : ''
   return `${sign}${value}%`
@@ -227,7 +199,7 @@ const getMetricValue = (
   // Utiliser les vraies valeurs si disponibles
   if (realValues.value) {
     const realValue = realValues.value[period][index]
-    return formatValue(realValue, metric, props.pageType, index)
+    return formatValue(realValue, metric, index)
   }
 
   // Sinon, valeur statique du config

@@ -6,7 +6,9 @@
     <div class="flex flex-col items-center justify-center gap-2 mt-4 w-full">
       <div v-for="(label, i) in labels" :key="label" class="flex items-center gap-2">
         <span class="w-4 h-4 rounded-full block" :style="{ background: colors[i] }"></span>
-        <span class="text-xs text-[#000] text-left">{{ label }} : {{ values[i] }}%</span>
+        <span class="text-xs text-left" :style="{ color: labelColor || '#000' }"
+          >{{ label }} : {{ values[i].toFixed(1) }}%</span
+        >
       </div>
     </div>
   </div>
@@ -23,6 +25,7 @@ const props = defineProps<{
   values: number[]
   labels: string[]
   colors?: string[]
+  labelColor?: string
 }>()
 
 const chartRef = ref<HTMLCanvasElement>()

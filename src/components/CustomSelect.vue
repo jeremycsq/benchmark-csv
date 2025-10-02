@@ -151,7 +151,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, watch } from 'vue'
 import { useRoute } from 'vue-router'
 
 type IconName = 'globe' | 'tag' | 'calendar' | 'devices' | 'users'
@@ -170,6 +170,14 @@ const emit = defineEmits<{
 const route = useRoute()
 const open = ref(false)
 const selectedLabel = ref(props.label)
+
+// Synchroniser le label affiché quand le parent met à jour la valeur (ex: reset au changement de page)
+watch(
+  () => props.label,
+  (newVal) => {
+    selectedLabel.value = newVal
+  },
+)
 
 function getCurrentPageColor(): string {
   switch (route.path) {

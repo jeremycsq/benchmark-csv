@@ -1,0 +1,5 @@
+export { default as DataOverviewFrustration } from './DataOverviewFrustration.vue'
+export { default as FrustrationBenchmarkChart } from './FrustrationBenchmarkChart.vue'
+export { default as FrustrationCoreWebVitals } from './FrustrationCoreWebVitals.vue'
+export { default as FrustrationChangeOverTime } from './FrustrationChangeOverTime.vue'
+export { default as FrustrationMetricsBenchmarks } from './FrustrationMetricsBenchmarks.vue'

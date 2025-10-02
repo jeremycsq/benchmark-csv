@@ -28,13 +28,13 @@ export function useEngagementMetrics() {
     } = {}
 
     // Ajouter seulement les filtres actifs (pas "All")
-    if (globalFilters.selectedCountry !== 'All Countries') {
+    if (globalFilters.selectedCountry !== 'All countries') {
       filters.country = globalFilters.selectedCountry
     }
-    if (globalFilters.selectedIndustry !== 'All Industries') {
+    if (globalFilters.selectedIndustry !== 'All industries') {
       filters.industry = globalFilters.selectedIndustry
     }
-    if (globalFilters.selectedDevice !== 'All Devices') {
+    if (globalFilters.selectedDevice !== 'All devices') {
       // Mapper le label UI vers la valeur DB (codes)
       const mapDevice = (label: string): string => {
         const l = label.toLowerCase()
@@ -47,7 +47,7 @@ export function useEngagementMetrics() {
       // All Devices sélectionné → cibler explicitement les lignes 'all_devices'
       filters.device = 'all_devices'
     }
-    if (globalFilters.selectedMonth !== 'All Months') {
+    if (globalFilters.selectedMonth !== 'All months') {
       filters.analysis_month = globalFilters.selectedMonth
     }
 

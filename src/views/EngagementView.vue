@@ -118,7 +118,7 @@ enum HeaderText {
   UpFromLastMonth = '⬆ Up from last month',
 }
 const headerText = computed(() =>
-  globalFilters.selectedMonth === 'All Months' ? HeaderText.ThisYear : HeaderText.UpFromLastMonth,
+  globalFilters.selectedMonth === 'All months' ? HeaderText.ThisYear : HeaderText.UpFromLastMonth,
 )
 
 // Watcher pour mettre à jour tous les composants quand les filtres changent

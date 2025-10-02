@@ -9,8 +9,13 @@ export function useTrafficMetrics() {
 
   // Données filtrées selon les filtres globaux
   const filteredData = computed(() => {
-    console.log('useTrafficMetrics - data.value (avant filtrage):', data.value.length, 'éléments')
-    console.log('useTrafficMetrics - Première ligne de data.value:', data.value[0])
+    console.log(
+      '🚦 useTrafficMetrics - data.value (avant filtrage):',
+      data.value.length,
+      'éléments',
+    )
+    console.log('🚥 useTrafficMetrics - Première ligne de data.value:', data.value[0])
+    console.log('🚦 useTrafficMetrics - Toutes les données:', data.value)
 
     // Construire les filtres - "All" signifie pas de filtre (undefined)
     const filters: {
@@ -21,13 +26,13 @@ export function useTrafficMetrics() {
     } = {}
 
     // Ajouter seulement les filtres actifs (pas "All")
-    if (globalFilters.selectedCountry !== 'All Countries') {
+    if (globalFilters.selectedCountry !== 'All countries') {
       filters.country = globalFilters.selectedCountry
     }
-    if (globalFilters.selectedIndustry !== 'All Industries') {
+    if (globalFilters.selectedIndustry !== 'All industries') {
       filters.industry = globalFilters.selectedIndustry
     }
-    if (globalFilters.selectedDevice !== 'All Devices') {
+    if (globalFilters.selectedDevice !== 'All devices') {
       // Mapper le label UI vers la valeur DB (codes)
       const mapDevice = (label: string): string => {
         const l = label.toLowerCase()
@@ -40,7 +45,7 @@ export function useTrafficMetrics() {
       // All Devices sélectionné → cibler explicitement les lignes 'all_devices'
       filters.device = 'all_devices'
     }
-    if (globalFilters.selectedMonth !== 'All Months') {
+    if (globalFilters.selectedMonth !== 'All months') {
       filters.analysis_month = globalFilters.selectedMonth
     }
 

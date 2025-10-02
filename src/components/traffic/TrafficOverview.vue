@@ -53,6 +53,7 @@ const { filteredData } = useTrafficMetrics()
 const deviceDistribution = computed(() => {
   console.log('🔄 TrafficOverview - deviceDistribution recalculé')
   console.log('TrafficOverview - filteredData.value.length:', filteredData.value.length)
+  console.log('TrafficOverview - filteredData.value:', filteredData.value)
 
   if (!filteredData.value.length) {
     console.log('TrafficOverview - Pas de données filtrées')

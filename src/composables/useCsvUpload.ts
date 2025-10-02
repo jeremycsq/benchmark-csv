@@ -3,6 +3,8 @@ import Papa from 'papaparse'
 import { useSupabaseData, type TrafficData } from './useSupabaseData'
 import { supabase } from '../lib/supabase'
 
+type GenericData = Record<string, unknown>
+
 export interface CsvUploadResult {
   success: boolean
   message: string
@@ -11,9 +13,13 @@ export interface CsvUploadResult {
 }
 
 export function useCsvUpload(tableName: string = 'traffic') {
+  console.log(`🎲 useCsvUpload initialisé avec tableName: "${tableName}"`)
   const uploading = ref(false)
   const progress = ref(0)
   const { insertData } = useSupabaseData()
+
+  // Forcer la revalidation si le tableName change
+  const dynamicTableName = ref(tableName)
 
   // Parser le fichier CSV
   const parseCsvFile = (file: File): Promise<Record<string, unknown>[]> => {
@@ -37,11 +43,26 @@ export function useCsvUpload(tableName: string = 'traffic') {
     })
   }
 
-  // Valider et transformer les données CSV
+  // Valider et transformer les données CSV selon la table
   const validateAndTransformData = (
     csvData: Record<string, unknown>[],
-  ): { valid: TrafficData[]; errors: string[] } => {
-    const valid: TrafficData[] = []
+  ): { valid: GenericData[]; errors: string[] } => {
+    const currentTableName = dynamicTableName.value
+    console.log(`🎯 Validation appelée avec tableName="${currentTableName}"`)
+    if (currentTableName === 'frustration') {
+      console.log('✅ Utilisant validateAndTransformFrustrationData')
+      return validateAndTransformFrustrationData(csvData)
+    } else {
+      console.log('⚠️ Fallback sur validateAndTransformTrafficData')
+      return validateAndTransformTrafficData(csvData)
+    }
+  }
+
+  // Validation spécifique pour la table traffic (logique existante)
+  const validateAndTransformTrafficData = (
+    csvData: Record<string, unknown>[],
+  ): { valid: GenericData[]; errors: string[] } => {
+    const valid: GenericData[] = []
     const errors: string[] = []
 
     // Récupère la première valeur définie parmi plusieurs alias de colonnes
@@ -159,7 +180,7 @@ export function useCsvUpload(tableName: string = 'traffic') {
         // Normaliser la ligne pour accepter différents schémas (MAJUSCULES, alias)
         const normalized = normalizeRow(row)
 
-        // Validation des champs requis (strict minimum)
+        // Validation des champs requis (strict minimum) - SEULEMENT pour traffic
         // Beaucoup de datasets n'ont pas les colonnes de variations YoY/MoM → on les rend optionnelles
         const requiredFields = [
           'analysis_month',
@@ -275,7 +296,196 @@ export function useCsvUpload(tableName: string = 'traffic') {
           return
         }
 
-        valid.push(transformedData as TrafficData)
+        valid.push(transformedData)
+      } catch (error) {
+        errors.push(`Ligne ${index + 2}: Erreur de transformation - ${error}`)
+      }
+    })
+
+    return { valid, errors }
+  }
+
+  // Validation spécifique pour la table frustration
+  const validateAndTransformFrustrationData = (
+    csvData: Record<string, unknown>[],
+  ): { valid: GenericData[]; errors: string[] } => {
+    console.log('😤 validateAndTransformFrustrationData appelée')
+    const valid: GenericData[] = []
+    const errors: string[] = []
+
+    csvData.forEach((row, index) => {
+      try {
+        // Debug: afficher les premières lignes brutes pour identifier le problème
+        if (index < 2) {
+          console.log(`🔍 LIGNE BRUTE ${index + 2}:`, {
+            bounce_rate: row.bounce_rate,
+            js_error_rate: row.js_error_rate,
+            load_time_frustration_rate: row.load_time_frustration_rate,
+            frustration_score: row.frustration_score,
+          })
+        }
+
+        // Validation minimale pour frustration - seulement les champs obligatoires
+        const requiredFields = ['id', 'analysis_month', 'country', 'industry', 'device']
+        const missingFields = requiredFields.filter((field) => {
+          const value = row[field]
+          return value === undefined || value === null || String(value).trim() === ''
+        })
+
+        if (missingFields.length > 0) {
+          errors.push(`Ligne ${index + 2}: Champs manquants: ${missingFields.join(', ')}`)
+          return
+        }
+
+        console.log(`✅ Ligne ${index + 2} validée pour frustration`)
+
+        // Préparer les données pour insertion (conversion des types)
+        const transformedData: GenericData = { ...row }
+
+        // Convertir les champs JSONB si présents
+        const jsonFields = [
+          'frustration_score_percentiles',
+          'load_time_frustration_percentiles',
+          'js_error_rate_percentiles',
+          'bounce_rate_percentiles',
+        ]
+
+        jsonFields.forEach((field) => {
+          if (transformedData[field] && typeof transformedData[field] === 'string') {
+            try {
+              transformedData[field] = JSON.parse(transformedData[field] as string)
+            } catch {
+              console.warn(`Invalid JSON in ${field}:`, transformedData[field])
+            }
+          }
+        })
+
+        // Corriger les valeurs DECIMAL qui peuvent overflow - TOUS les champs décimaux
+        const decimalFields = [
+          'frustration_score',
+          'load_time_frustration_rate',
+          'js_error_rate',
+          'bounce_rate',
+          'avg_lcp',
+          'avg_cls',
+          'avg_inp',
+          'percentile_rank',
+          // Ajouter TOUS les autres champs décimaux pour être sûr
+          'frustration_score_yoy_change',
+          'load_time_frustration_yoy_change',
+          'js_error_rate_yoy_change',
+          'bounce_rate_yoy_change',
+          'lcp_yoy_change',
+          'cls_yoy_change',
+          'inp_yoy_change',
+          'frustration_score_mom_change',
+          'load_time_frustration_mom_change',
+          'js_error_rate_mom_change',
+          'bounce_rate_mom_change',
+          'lcp_mom_change',
+          'cls_mom_change',
+          'inp_mom_change',
+          'frustration_score_p25',
+          'load_time_frustration_p25',
+          'js_error_rate_p25',
+          'bounce_rate_p25',
+          'lcp_p25',
+          'cls_p25',
+          'inp_p25',
+          'frustration_score_p75',
+          'load_time_frustration_p75',
+          'js_error_rate_p75',
+          'bounce_rate_p75',
+          'lcp_p75',
+          'cls_p75',
+          'inp_p75',
+          // Toutes les variations percentiles aussi
+          ...Object.keys(transformedData).filter(
+            (key) => key.includes('_p25_') || key.includes('_p75_'),
+          ),
+        ]
+
+        decimalFields.forEach((field) => {
+          if (transformedData[field] !== null && transformedData[field] !== undefined) {
+            const value = parseFloat(String(transformedData[field]))
+            if (!isNaN(value)) {
+              // Limiter les valeurs décimales selon le type de champ
+              if (['load_time_frustration_rate', 'js_error_rate', 'bounce_rate'].includes(field)) {
+                // Champs DECIMAL(5,4) - peuvent aller jusqu'à 9.9999
+                if (value > 1 && value <= 100) {
+                  transformedData[field] = Math.min(value / 100, 0.9999) // Convertir en ratio et limiter
+                } else if (value > 100) {
+                  transformedData[field] = 0.9999 // Limiter à 99.99%
+                } else {
+                  transformedData[field] = Math.min(value, 0.9999)
+                }
+              } else if (field === 'avg_lcp') {
+                // DECIMAL(6,3) - peut aller jusqu'à 999.999
+                transformedData[field] = Math.min(value, 99.999)
+              } else if (field === 'avg_cls') {
+                // DECIMAL(6,6) - valeurs très petites
+                transformedData[field] = Math.min(value, 0.999999)
+              } else if (field === 'avg_inp') {
+                // DECIMAL(6,3) - peut aller jusqu'à 999.999
+                transformedData[field] = Math.min(value, 99.999)
+              } else if (field === 'frustration_score') {
+                // DECIMAL(5,2) - peut aller jusqu'à 999.99
+                transformedData[field] = Math.min(value, 99.99)
+              } else if (field === 'percentile_rank') {
+                // Pour percentile_rank, convertir en entier
+                transformedData[field] = Math.round(Math.min(value, 100))
+              } else {
+                // Règle catch-all pour tous les autres champs numériques
+                // S'assurer qu'ils ne dépassent pas 9.9999 (limite DECIMAL(5,4))
+                if (Math.abs(value) > 9.9999) {
+                  transformedData[field] = value > 0 ? 9.9999 : -9.9999
+                }
+              }
+
+              // Log pour debug les premières lignes - TOUS les champs problématiques
+              if (index < 2) {
+                console.log(`🔧 ${field}: ${String(row[field])} → ${transformedData[field]}`)
+              }
+            }
+          }
+        })
+
+        // Vérification finale des limites DECIMAL avant insertion
+        const problematicFields: string[] = []
+        Object.entries(transformedData).forEach(([key, value]) => {
+          if (typeof value === 'number') {
+            // Vérifier les limites DECIMAL
+            if (
+              ['load_time_frustration_rate', 'js_error_rate', 'bounce_rate'].includes(key) &&
+              value > 0.9999
+            ) {
+              problematicFields.push(`${key}=${value} > 0.9999`)
+            }
+            if (['frustration_score'].includes(key) && value > 99.99) {
+              problematicFields.push(`${key}=${value} > 99.99`)
+            }
+            if (['avg_lcp', 'avg_inp'].includes(key) && value > 99.999) {
+              problematicFields.push(`${key}=${value} > 99.999`)
+            }
+            if (['avg_cls'].includes(key) && value > 0.999999) {
+              problematicFields.push(`${key}=${value} > 0.999999`)
+            }
+          }
+        })
+
+        if (problematicFields.length > 0) {
+          console.error(`❌ Ligne ${index + 2} a encore des problèmes:`, problematicFields)
+        }
+
+        if (index < 3) {
+          console.log(`🔍 Ligne ${index + 2} transformée:`, {
+            frustration_score: transformedData.frustration_score,
+            bounce_rate: transformedData.bounce_rate,
+            avg_lcp: transformedData.avg_lcp,
+          })
+        }
+
+        valid.push(transformedData)
       } catch (error) {
         errors.push(`Ligne ${index + 2}: Erreur de transformation - ${error}`)
       }
@@ -291,8 +501,9 @@ export function useCsvUpload(tableName: string = 'traffic') {
     console.log("🔍 Vérification des conflits d'ID...")
 
     // Récupérer tous les ID existants
+    const currentTableName = dynamicTableName.value
     const { data: existingData } = await supabase
-      .from(tableName)
+      .from(currentTableName)
       .select('id')
       .order('id', { ascending: false })
       .limit(1)
@@ -331,20 +542,30 @@ export function useCsvUpload(tableName: string = 'traffic') {
   // Upload du fichier CSV
   const uploadCsvFile = async (file: File): Promise<CsvUploadResult> => {
     try {
+      console.log(`🚀 Début upload CSV pour table "${tableName}"`)
       uploading.value = true
       progress.value = 0
 
-      // Étape 1: Parser le CSV
+      // Étape 1: Parsing le CSV
       progress.value = 20
+      console.log('📄 Parsing CSV...')
       const csvData = await parseCsvFile(file)
+      console.log(`📊 CSV parsé: ${csvData.length} lignes`)
 
       // Étape 2: Résoudre les conflits d'ID
       progress.value = 40
+      console.log('🔍 Résolution conflits ID...')
       const resolvedData = await resolveIdConflicts(csvData)
+      console.log(`✅ Conflits résolus: ${resolvedData.length} lignes`)
 
       // Étape 3: Valider et transformer
       progress.value = 60
+      console.log('✓ Validation et transformation...')
       const { valid, errors } = validateAndTransformData(resolvedData)
+
+      console.log(
+        `🔍 Validation pour table "${tableName}": ${valid.length} valides, ${errors.length} erreurs`,
+      )
 
       if (errors.length > 0) {
         return {
@@ -369,11 +590,31 @@ export function useCsvUpload(tableName: string = 'traffic') {
       const batchSize = 100
       let totalInserted = 0
 
-      for (let i = 0; i < valid.length; i += batchSize) {
-        const batch = valid.slice(i, i + batchSize)
-        await insertData(batch)
-        totalInserted += batch.length
-        progress.value = 75 + (i / valid.length) * 25
+      console.log(`💾 Insertion en base: ${valid.length} enregistrements`)
+
+      const currentTableName = dynamicTableName.value
+      if (currentTableName === 'frustration') {
+        // Insertion directe pour frustration
+        console.log('🎯 Mode frustration: insertion directe')
+        for (let i = 0; i < valid.length; i += batchSize) {
+          const batch = valid.slice(i, i + batchSize)
+          console.log(`📦 Lot ${Math.floor(i / batchSize) + 1}: ${batch.length} items`)
+          const { error } = await supabase.from(currentTableName).insert(batch)
+          if (error) {
+            console.error('❌ Erreur insertion batch:', error)
+            throw error
+          }
+          totalInserted += batch.length
+          progress.value = 75 + (i / valid.length) * 25
+        }
+      } else {
+        // Insertion via insertData pour traffic
+        for (let i = 0; i < valid.length; i += batchSize) {
+          const batch = valid.slice(i, i + batchSize)
+          await insertData(batch as unknown as TrafficData[])
+          totalInserted += batch.length
+          progress.value = 75 + (i / valid.length) * 25
+        }
       }
 
       progress.value = 100
@@ -385,6 +626,8 @@ export function useCsvUpload(tableName: string = 'traffic') {
         errors: [],
       }
     } catch (error) {
+      console.error('🚨 Erreur détaillée upload:', error)
+      console.error('🚨 Stack trace:', error instanceof Error ? error.stack : 'No stack')
       return {
         success: false,
         message: error instanceof Error ? error.message : "Erreur lors de l'upload",
@@ -439,13 +682,28 @@ export function useCsvUpload(tableName: string = 'traffic') {
         }
       } else if (table === 'frustration') {
         return {
-          analysis_month: '2024-01',
-          country: 'France',
-          industry: 'Technology',
-          device: 'Desktop',
-          error_rate: 0.02,
-          slow_page_rate: 0.15,
-          // Ajoutez d'autres champs selon votre schéma
+          id: 1,
+          analysis_month: '2024-05',
+          country: 'Global',
+          industry: 'all_industry',
+          device: 'all_device',
+          frustration_score: 39.45,
+          load_time_frustration_rate: 14.91,
+          js_error_rate: 18.06,
+          bounce_rate: 51.82,
+          avg_lcp: 2.29,
+          avg_cls: 0.14,
+          avg_inp: 1.63,
+          frustrating_score_yoy_change: 0.9,
+          load_time_frustration_yoy_change: -10.21,
+          js_error_rate_yoy_change: 15.74,
+          bounce_rate_yoy_change: 3.79,
+          lcp_yoy_change: -8.52,
+          cls_yoy_change: -9.58,
+          inp_yoy_change: 288.87,
+          percentile_rank: 50,
+          project_count: 1331,
+          calculation_timestamp: '2024-06-22T17:11:09.556Z',
         }
       } else if (table === 'conversion') {
         return {
@@ -461,7 +719,7 @@ export function useCsvUpload(tableName: string = 'traffic') {
       return {}
     }
 
-    const template = [getTemplateForTable(tableName)]
+    const template = [getTemplateForTable(dynamicTableName.value)]
 
     const csv = Papa.unparse(template)
     const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' })
@@ -478,10 +736,16 @@ export function useCsvUpload(tableName: string = 'traffic') {
     }
   }
 
+  const updateTableName = (newTableName: string) => {
+    console.log(`🔄 updateTableName: "${dynamicTableName.value}" → "${newTableName}"`)
+    dynamicTableName.value = newTableName
+  }
+
   return {
     uploading: computed(() => uploading.value),
     progress: computed(() => progress.value),
     uploadCsvFile,
     downloadTemplate,
+    updateTableName,
   }
 }

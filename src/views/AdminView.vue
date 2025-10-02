@@ -49,7 +49,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, computed } from 'vue'
+import { ref, onMounted, computed, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { useSupabaseData } from '../composables/useSupabaseData'
 import CsvUploader from '../components/CsvUploader.vue'
@@ -84,6 +84,15 @@ const availableTables = [
 // Table sélectionnée
 const selectedTable = ref('traffic')
 
+// Debug: surveiller les changements de selectedTable
+watch(
+  selectedTable,
+  (newTable) => {
+    console.log(`🎯 AdminView - selectedTable changé vers: "${newTable}"`)
+  },
+  { immediate: true },
+)
+
 const { data, filterOptions, totalRecords, fetchAllData } = useSupabaseData()
 const { logoutAdmin } = useAuth()
 
@@ -115,7 +124,7 @@ function getTableButtonClass(tableName: string) {
       case 'frustration':
         return 'border-[#EB6909] bg-[#EB6909]/10 text-[#EB6909]'
       case 'conversion':
-        return 'border-[#0A95B3] bg-[#0A95B3]/10 text-[#0A95B3]'
+        return 'border-[#41474D] bg-[#41474D]/10 text-[#41474D]'
       default:
         return 'border-blue-500 bg-blue-50 text-blue-700'
     }

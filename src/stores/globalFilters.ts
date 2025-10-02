@@ -1,48 +1,99 @@
 import { defineStore } from 'pinia'
-import { ref, computed } from 'vue'
+import { ref, computed, watch } from 'vue'
 import { useSupabaseData } from '../composables/useSupabaseData'
+import { useRoute } from 'vue-router'
 
 export const useGlobalFiltersStore = defineStore('globalFilters', () => {
-  const selectedMonth = ref('All Months')
-  const selectedCountry = ref('All Countries')
-  const selectedIndustry = ref('All Industries')
-  const selectedDevice = ref('All Devices')
+  const selectedMonth = ref('All months')
+  const selectedCountry = ref('All countries')
+
+  const selectedIndustry = ref('All industries')
+  const selectedDevice = ref('All devices')
   const selectedVisitorType = ref('All visitors')
 
-  // Récupérer les données Supabase
-  const { filterOptions, fetchAllData } = useSupabaseData()
+  // Route actuelle pour déterminer la table
+  const route = useRoute()
 
-  // Options pour les selects
-  const monthOptions = computed(() => [
-    { label: 'All Months', value: 'All Months' },
-    ...filterOptions.value.analysis_months.map((month: string) => ({ label: month, value: month })),
-  ])
+  // Déterminer la table active selon la route
+  const activeTable = computed(() => {
+    const table = (() => {
+      switch (route.path) {
+        case '/traffic':
+          return 'traffic'
+        case '/engagement':
+          return 'engagement'
+        case '/frustration':
+          return 'frustration'
+        case '/conversion':
+          return 'conversion'
+        default:
+          return 'traffic'
+      }
+    })()
+    console.log(`🎯 globalFilters - Table active détectée: ${table} (route: ${route.path})`)
+    return table
+  })
 
-  const countryOptions = computed(() => [
-    { label: 'All Countries', value: 'All Countries' },
-    ...filterOptions.value.countries.map((country: string) => ({ label: country, value: country })),
-  ])
+  // Récupérer les données Supabase avec support multi-table
+  const { filterOptions, fetchTableData } = useSupabaseData()
 
-  const industryOptions = computed(() => [
-    { label: 'All Industries', value: 'All Industries' },
-    ...filterOptions.value.industries.map((industry: string) => ({
-      label: industry,
-      value: industry,
-    })),
-  ])
+  // Options pour les selects - spécifiques à la table active
+  const monthOptions = computed(() => {
+    const months = filterOptions.value.analysis_months || []
+    return [
+      { label: 'All months', value: 'All months' },
+      ...months.map((month: string) => ({ label: month, value: month })),
+    ]
+  })
+
+  const countryOptions = computed(() => {
+    const countries = filterOptions.value.countries || []
+    console.log('🌍 globalFilters - Pays dans filterOptions:', countries)
+
+    // Filtrer pour exclure "Global" des options affichées (car "All Countries" = "Global")
+    const filteredCountries = countries.filter((country: string) => country !== 'Global')
+
+    const options = [
+      { label: 'All countries', value: 'All countries' },
+      ...filteredCountries.map((country: string) => ({ label: country, value: country })),
+    ]
+    console.log('🌍 globalFilters - Options de pays générées (sans Global):', options)
+    return options
+  })
+
+  const industryOptions = computed(() => {
+    const industries = filterOptions.value.industries || []
+    return [
+      { label: 'All Industries', value: 'All Industries' },
+      ...industries.map((industry: string) => ({
+        label: industry,
+        value: industry,
+      })),
+    ]
+  })
 
   const deviceOptions = computed(() => {
-    const mapped = filterOptions.value.devices
-      // masquer all_devices provenant de la DB
-      .filter((d: string) => String(d).toLowerCase() !== 'all_devices')
-      .map((d: string) => {
-        const val = String(d).toLowerCase()
-        if (val === '1') return { label: 'Desktop', value: 'Desktop' }
-        if (val === '2') return { label: 'Mobile', value: 'Mobile' }
-        return { label: d, value: d }
-      })
+    const devices = filterOptions.value.devices || []
+    let mapped = []
 
-    return [{ label: 'All Devices', value: 'All Devices' }, ...mapped]
+    if (activeTable.value === 'traffic') {
+      // Pour traffic : mapper les codes numériques
+      mapped = devices
+        .filter((d: string) => String(d).toLowerCase() !== 'all_devices')
+        .map((d: string) => {
+          const val = String(d).toLowerCase()
+          if (val === '1') return { label: 'Desktop', value: 'Desktop' }
+          if (val === '2') return { label: 'Mobile', value: 'Mobile' }
+          return { label: d, value: d }
+        })
+    } else {
+      // Pour frustration, engagement, conversion : valeurs texte directes
+      mapped = devices
+        .filter((d: string) => !['all_device', 'all_devices'].includes(String(d).toLowerCase()))
+        .map((d: string) => ({ label: d, value: d }))
+    }
+
+    return [{ label: 'All devices', value: 'All devices' }, ...mapped]
   })
 
   const visitorTypeOptions = computed(() => [
@@ -67,11 +118,34 @@ export const useGlobalFiltersStore = defineStore('globalFilters', () => {
     selectedVisitorType.value = visitorType
   }
 
-  // Initialiser les données
-  function initializeData() {
-    console.log('globalFilters - Initialisation des données...')
-    fetchAllData()
+  // Initialiser les données selon la table active
+  function initializeData(table?: string) {
+    const tableToUse = table || activeTable.value
+    console.log(`globalFilters - Initialisation des données pour la table: ${tableToUse}`)
+
+    // Récupérer les options spécifiques à la table active
+    fetchTableData(tableToUse)
   }
+
+  // Réinitialiser les sélecteurs quand on change de page (table active)
+  watch(
+    activeTable,
+    (newTable, oldTable) => {
+      console.log('🔁 globalFilters - Changement de page, reset des filtres:', {
+        from: oldTable,
+        to: newTable,
+      })
+      selectedMonth.value = 'All months'
+      selectedCountry.value = 'All countries'
+      selectedIndustry.value = 'All industries'
+      selectedDevice.value = 'All devices'
+      selectedVisitorType.value = 'All visitors'
+
+      // Rafraîchir les options pour la nouvelle table
+      fetchTableData(newTable)
+    },
+    { immediate: false },
+  )
 
   return {
     selectedMonth,

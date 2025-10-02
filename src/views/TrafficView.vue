@@ -69,8 +69,9 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted } from 'vue'
-import DataOverviewTraffic from '@/components/DataOverviewTraffic.vue'
+import { onMounted, watch } from 'vue'
+import { useRoute } from 'vue-router'
+import { DataOverviewTraffic } from '@/components/traffic'
 import { useScrollReveal } from '@/composables/useScrollReveal'
 import { useGlobalFiltersStore } from '@/stores/globalFilters'
 import { useTrafficMetrics } from '@/composables/useTrafficMetrics'
@@ -102,14 +103,16 @@ useScrollReveal('.reveal-fade', {
   easing: 'ease-in-out',
 })
 
+const route = useRoute()
 const globalFilters = useGlobalFiltersStore()
 const { filteredData } = useTrafficMetrics()
 
 // Ces variables sont maintenant gérées par le composant DataOverviewTraffic
 
-// Initialiser les données Supabase
+// Initialiser les données Supabase pour la table traffic
 onMounted(() => {
-  globalFilters.initializeData()
+  console.log('🔧 TrafficView - Chargement des données de la table traffic')
+  globalFilters.initializeData('traffic')
   // Audit des données quand disponibles (léger et en console)
   setTimeout(() => {
     try {
@@ -119,4 +122,15 @@ onMounted(() => {
     }
   }, 500)
 })
+
+// Surveiller les changements de route pour recharger les données si nécessaire
+watch(
+  () => route.path,
+  (newPath) => {
+    if (newPath === '/traffic') {
+      console.log('📄 TrafficView - Navigation détectée vers /traffic, rechargement des données')
+      globalFilters.initializeData('traffic')
+    }
+  },
+)
 </script>

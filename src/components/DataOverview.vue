@@ -141,12 +141,13 @@
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue'
+import { computed, ref, watch, onMounted } from 'vue'
 import { pageConfigs, type PageMetrics } from '@/config/pageConfig'
 import { useGlobalFiltersStore } from '@/stores/globalFilters'
+import { supabase } from '@/lib/supabase'
 
 interface Props {
-  pageType: 'engagement' | 'frustration' | 'conversion'
+  pageType: 'traffic' | 'engagement' | 'frustration' | 'conversion'
 }
 
 const props = defineProps<Props>()
@@ -164,6 +165,10 @@ const dynamicTitle = computed(() => {
 
   // Mapping des titres par page
   const titles = {
+    traffic: {
+      all: 'How is your traffic looking this year?',
+      month: (m: string) => `How has Traffic evolved in ${m} ?`,
+    },
     engagement: {
       all: 'How has Engagement evolved across sectors this year?',
       month: (m: string) => `How has Engagement evolved in ${m} ?`,
@@ -185,12 +190,160 @@ const dynamicTitle = computed(() => {
   }
 })
 
-// Valeurs par défaut pour les autres types de pages
-// TODO: Implémenter les composables spécifiques pour engagement, conversion, frustration
+// Données réelles pour traffic и frustration
+const trafficData = ref<any[]>([])
+const frustrationData = ref<any[]>([])
 const realValues = computed(() => {
+  if (props.pageType === 'traffic' && trafficData.value.length > 0) {
+    const latestData = trafficData.value[0]
+    return {
+      yoy: [
+        Number(latestData.yoy_change || 0),
+        Number(latestData.new_visitor_yoy_change || 0),
+        Number(latestData.mobile_yoy_change || 0),
+        Number(latestData.paid_traffic_yoy_change || 0),
+      ],
+      mom: [
+        parseFloat(String(latestData.mom_change || 0)),
+        parseFloat(String(latestData.new_visitor_mom_change || 0)),
+        parseFloat(String(latestData.mobile_mom_change || 0)),
+        parseFloat(String(latestData.paid_traffic_mom_change || 0)),
+      ],
+    }
+  }
+
+  if (props.pageType === 'frustration' && frustrationData.value.length > 0) {
+    const latestData = frustrationData.value[0]
+    return {
+      yoy: [
+        latestData.frustration_score,
+        latestData.load_time_frustration_yoy_change,
+        latestData.js_error_rate_yoy_change,
+        latestData.bounce_rate_yoy_change,
+      ],
+      mom: [
+        latestData.frustration_score,
+        latestData.load_time_frustration_mom_change,
+        latestData.js_error_rate_mom_change,
+        latestData.bounce_rate_mom_change,
+      ],
+    }
+  }
+
+  // Valeurs par défaut pour les autres types de pages
   return {
     yoy: [0, 0, 0, 0],
     mom: [0, 0, 0, 0],
+  }
+})
+
+// Fonction pour récupérer les données traffic
+const fetchTrafficData = async () => {
+  if (props.pageType !== 'traffic') return
+
+  try {
+    console.log('📊 Récupération des données traffic pour DataOverview...')
+
+    let query = supabase
+      .from('traffic')
+      .select('*')
+      .order('analysis_month', { ascending: false })
+      .limit(1)
+
+    // Appliquer les filtres globaux
+    if (globalFilters.selectedCountry !== 'All countries') {
+      query = query.eq('country', globalFilters.selectedCountry)
+    }
+    if (globalFilters.selectedIndustry !== 'All industries') {
+      query = query.eq('industry', globalFilters.selectedIndustry)
+    }
+    if (globalFilters.selectedDevice !== 'All devices') {
+      query = query.eq('device', globalFilters.selectedDevice)
+    }
+    if (globalFilters.selectedMonth !== 'All months') {
+      query = query.eq('analysis_month', globalFilters.selectedMonth)
+    }
+
+    const { data, error } = await query
+
+    if (error) {
+      console.error('❌ Erreur lors de la récupération des données traffic:', error)
+      return
+    }
+
+    trafficData.value = data || []
+    console.log('✅ Données traffic récupérées:', data?.length || 0, 'enregistrements')
+  } catch (error) {
+    console.error('❌ Erreur lors de la récupération des données traffic:', error)
+  }
+}
+
+// Fonction pour récupérer les données frustration
+const fetchFrustrationData = async () => {
+  if (props.pageType !== 'frustration') return
+
+  try {
+    console.log('📊 Récupération des données frustration pour DataOverview...')
+
+    let query = supabase
+      .from('frustration')
+      .select(
+        'frustration_score, load_time_frustration_rate, js_error_rate, bounce_rate, frustration_score_yoy_change, load_time_frustration_yoy_change, js_error_rate_yoy_change, bounce_rate_yoy_change, frustration_score_mom_change, load_time_frustration_mom_change, js_error_rate_mom_change, bounce_rate_mom_change',
+      )
+      .order('analysis_month', { ascending: false })
+      .limit(1)
+
+    // Appliquer les filtres globaux
+    if (globalFilters.selectedCountry !== 'All Countries') {
+      query = query.eq('country', globalFilters.selectedCountry)
+    }
+    if (globalFilters.selectedIndustry !== 'All Industries') {
+      query = query.eq('industry', globalFilters.selectedIndustry)
+    }
+    if (globalFilters.selectedDevice !== 'All Devices') {
+      query = query.eq('device', globalFilters.selectedDevice)
+    }
+    if (globalFilters.selectedMonth !== 'All months') {
+      query = query.eq('analysis_month', globalFilters.selectedMonth)
+    }
+
+    const { data, error } = await query
+
+    if (error) {
+      console.error('❌ Erreur lors de la récupération des données frustration:', error)
+      return
+    }
+
+    frustrationData.value = data || []
+    console.log('✅ Données frustration récupérées:', data?.length || 0, 'enregistrements')
+  } catch (error) {
+    console.error('❌ Erreur lors de la récupération des données frustration:', error)
+  }
+}
+
+// Survol de supervise les changements de filtres
+watch(
+  [
+    () => globalFilters.selectedCountry,
+    () => globalFilters.selectedIndustry,
+    () => globalFilters.selectedMonth,
+    () => globalFilters.selectedDevice,
+  ],
+  () => {
+    if (props.pageType === 'traffic') {
+      fetchTrafficData()
+    } else if (props.pageType === 'frustration') {
+      fetchFrustrationData()
+    }
+  },
+  { immediate: true },
+)
+
+onMounted(() => {
+  if (props.pageType === 'traffic') {
+    fetchTrafficData()
+  } else if (props.pageType === 'frustration') {
+    fetchFrustrationData()
   }
 })
 

@@ -89,9 +89,8 @@
           :class="{
             'bg-[#8D0A38] text-white hover:bg-[#72082C]': $route.path === '/traffic',
             'bg-[#2E614F] text-white hover:bg-[#1F4A3A]': $route.path === '/engagement',
-            'bg-[#EB6909] text-white hover:bg-[#C15607]': $route.path === '/frustration',
-            'bg-gradient-to-r from-[#0A95B3] to-[#0EA9CC] text-white hover:from-[#086C82] hover:to-[#068DAB]':
-              $route.path === '/conversion',
+            'bg-[#3737A2] text-white hover:bg-[#2A2A7A]': $route.path === '/frustration',
+            'bg-[#41474D] text-white hover:bg-[#32373A]': $route.path === '/conversion',
           }"
           @click="showDownloadModal = true"
         >
@@ -195,8 +194,8 @@
       to="/frustration"
       class="py-3 font-medium transition-colors"
       :class="{
-        'text-[#EB6909]': $route.path === '/frustration',
-        'text-gray-400 hover:text-[#EB6909]': $route.path !== '/frustration',
+        'text-[#3737A2]': $route.path === '/frustration',
+        'text-gray-400 hover:text-[#3737A2]': $route.path !== '/frustration',
       }"
     >
       Frustration
@@ -205,8 +204,8 @@
       to="/conversion"
       class="py-3 font-medium transition-colors"
       :class="{
-        'text-[#119DBC]': $route.path === '/conversion',
-        'text-gray-400 hover:text-[#119DBC]': $route.path !== '/conversion',
+        'text-[#41474D]': $route.path === '/conversion',
+        'text-gray-400 hover:text-[#41474D]': $route.path !== '/conversion',
       }"
     >
       Conversion
@@ -389,8 +388,8 @@ const downloadModalTheme = computed(() => {
 const logoColor = computed(() => {
   if (route.path === '/traffic') return '#8D0A38'
   if (route.path === '/engagement') return '#2E614F'
-  if (route.path === '/frustration') return '#EB6909'
-  if (route.path === '/conversion') return '#0A95B3'
+  if (route.path === '/frustration') return '#3737A2'
+  if (route.path === '/conversion') return '#41474D'
   return '#8D0A38' // Par défaut, couleur traffic
 })
 function handleDownloadConfirm(selected: string[]) {

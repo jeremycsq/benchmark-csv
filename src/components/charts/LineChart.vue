@@ -47,6 +47,12 @@ let chart: Chart | null = null
 const createChart = () => {
   if (!chartRef.value) return
 
+  // Détruire le chart existant si il y en a un
+  if (chart) {
+    chart.destroy()
+    chart = null
+  }
+
   const ctx = chartRef.value.getContext('2d')
   if (!ctx) return
 
@@ -139,7 +145,7 @@ const createChart = () => {
           hoverBorderColor: 'white',
         },
         line: {
-          borderWidth: 3,
+          borderWidth: 2,
           tension: 0.4,
         },
       },
@@ -193,4 +199,16 @@ onUnmounted(() => {
 watch(() => props.data, updateChart, { deep: true })
 watch(() => props.labelColor, updateChart)
 watch(() => props.gridColor, updateChart)
+watch(
+  () => props.yMin,
+  () => createChart(),
+)
+watch(
+  () => props.yMax,
+  () => createChart(),
+)
+watch(
+  () => props.yStep,
+  () => createChart(),
+)
 </script>

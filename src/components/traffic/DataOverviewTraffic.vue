@@ -144,16 +144,22 @@
 import { computed } from 'vue'
 import { pageConfigs, type PageMetrics } from '@/config/pageConfig'
 import { useGlobalFiltersStore } from '@/stores/globalFilters'
-// TODO: Importer le composable useFrustrationMetrics quand il sera créé
-// import { useFrustrationMetrics } from '@/composables/useFrustrationMetrics'
+import { useTrafficMetrics } from '@/composables/useTrafficMetrics'
 
 const globalFilters = useGlobalFiltersStore()
 
-// TODO: Connexion aux données Supabase pour la frustration
-// const { frustrationMetrics, yoyChanges, isLoading, error } = useFrustrationMetrics()
+// Connexion aux données Supabase pour le trafic
+const { benchmarkMetrics, yoyChanges, filteredData, isLoading, error } = useTrafficMetrics()
+
+// Debug: afficher les données reçues
+console.log('DataOverviewTraffic - benchmarkMetrics:', benchmarkMetrics.value)
+console.log('DataOverviewTraffic - yoyChanges:', yoyChanges.value)
+console.log('DataOverviewTraffic - filteredData:', filteredData.value)
+console.log('DataOverviewTraffic - isLoading:', isLoading.value)
+console.log('DataOverviewTraffic - error:', error.value)
 
 const pageConfig = computed<PageMetrics>(() => {
-  return pageConfigs.frustration
+  return pageConfigs.traffic
 })
 
 const selectedMonth = computed(() => globalFilters.selectedMonth)
@@ -161,22 +167,42 @@ const selectedMonth = computed(() => globalFilters.selectedMonth)
 const dynamicTitle = computed(() => {
   const month = selectedMonth.value
 
-  // Mapping des titres pour frustration
+  // Mapping des titres pour traffic
   const titles = {
-    all: 'How has Frustration evolved across sectors this year?',
-    month: (m: string) => `How has Frustration evolved in ${m} ?`,
+    all: 'Reveal which metrics need immediate client attention',
+    month: (m: string) => `How has Traffic evolved in ${m} ?`,
   }
 
-  if (!month || month === 'All Months') {
+  if (!month || month === 'All months') {
     return titles.all
   } else {
     return titles.month(month)
   }
 })
 
-// Valeurs par défaut pour frustration
-// TODO: Remplacer par les vraies valeurs depuis Supabase
+// Valeurs calculées depuis Supabase
 const realValues = computed(() => {
+  if (yoyChanges.value && filteredData.value && filteredData.value.length > 0) {
+    // Utiliser les vraies données depuis filteredData pour MoM
+    const latestData = filteredData.value[0] || filteredData.value[filteredData.value.length - 1]
+
+    return {
+      yoy: [
+        yoyChanges.value.overall || 0,
+        yoyChanges.value.mobile || 0,
+        yoyChanges.value.new || 0,
+        yoyChanges.value.unpaid || 0,
+      ],
+      mom: [
+        parseFloat(String(latestData.mom_change || 0).replace('%', '')),
+        parseFloat(String(latestData.mobile_mom_change || 0).replace('%', '')),
+        parseFloat(String(latestData.new_visitor_mom_change || 0).replace('%', '')),
+        parseFloat(String(latestData.paid_traffic_mom_change || 0).replace('%', '')),
+      ],
+    }
+  }
+
+  // Valeurs par défaut
   return {
     yoy: [0, 0, 0, 0],
     mom: [0, 0, 0, 0],
@@ -185,18 +211,6 @@ const realValues = computed(() => {
 
 // Fonction pour formater les valeurs avec le bon format selon le type
 const formatValue = (value: number, metric: { value: string }, index: number): string => {
-  // Pour les métriques de temps (Load Time Frustration)
-  if (index === 1) {
-    const minutes = Math.floor(value / 60)
-    const seconds = value % 60
-    return `${minutes.toString().padStart(2, '0')}min${seconds.toString().padStart(2, '0')}`
-  }
-
-  // Pour les scores de frustration
-  if (index === 0) {
-    return value.toString()
-  }
-
   // Pour les pourcentages
   const sign = value >= 0 ? '+' : ''
   return `${sign}${value}%`
@@ -208,7 +222,7 @@ const getMetricValue = (
   period: 'yoy' | 'mom',
   index: number,
 ): string => {
-  // Utiliser les vraies valeurs si disponibles
+  // Utiliser les vraies valeurs depuis Supabase si disponibles
   if (realValues.value) {
     const realValue = realValues.value[period][index]
     return formatValue(realValue, metric, index)
@@ -224,7 +238,7 @@ const getNumericValue = (
   period: 'yoy' | 'mom',
   index: number,
 ): number => {
-  // Utiliser les vraies valeurs si disponibles
+  // Utiliser les vraies valeurs depuis Supabase si disponibles
   if (realValues.value) {
     return realValues.value[period][index]
   }
@@ -233,4 +247,7 @@ const getNumericValue = (
   const numericValue = parseFloat(metric.value.replace(/[%,min]/g, ''))
   return isNaN(numericValue) ? 0 : numericValue
 }
+
+// Les valeurs se mettent à jour automatiquement via les computed properties
+// Pas besoin de watch car useTrafficMetrics est réactif aux filtres globaux
 </script>

@@ -1,3 +1,4 @@
+export { default as DataOverviewTraffic } from './DataOverviewTraffic.vue'
 export { default as TrafficOverview } from './TrafficOverview.vue'
 export { default as TrafficShareByTypes } from './TrafficShareByTypes.vue'
 export { default as TrafficChangeByType } from './TrafficChangeByType.vue'

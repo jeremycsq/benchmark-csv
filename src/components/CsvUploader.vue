@@ -129,7 +129,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, watch } from 'vue'
 import { useCsvUpload, type CsvUploadResult } from '../composables/useCsvUpload'
 
 // Props
@@ -137,8 +137,20 @@ const props = defineProps<{
   tableName?: string
 }>()
 
-const { uploading, progress, uploadCsvFile, downloadTemplate } = useCsvUpload(
+console.log(`📝 CsvUploader monté avec tableName: "${props.tableName}"`)
+
+const { uploading, progress, uploadCsvFile, downloadTemplate, updateTableName } = useCsvUpload(
   props.tableName || 'traffic',
+)
+
+// Surveiller les changements de tableName
+watch(
+  () => props.tableName,
+  (newTableName) => {
+    console.log(`🔄 TableName changé vers: "${newTableName}"`)
+    updateTableName(newTableName || 'traffic')
+  },
+  { immediate: true },
 )
 
 const fileInput = ref<HTMLInputElement>()

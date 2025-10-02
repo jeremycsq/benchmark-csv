@@ -40,6 +40,14 @@ export interface FilterOptions {
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 let globalData: any = null
 
+// Store pour les différentes tables
+const tableDataStore = {
+  traffic: null as any,
+  engagement: null as any,
+  frustration: null as any,
+  conversion: null as any,
+}
+
 export function useSupabaseData() {
   // Si une instance existe déjà, la retourner
   if (globalData) {
@@ -295,6 +303,101 @@ export function useSupabaseData() {
     }
   }
 
+  // Fonction pour récupérer les données spécifiques à une table
+  const fetchTableData = async (tableName: string) => {
+    console.log(`fetchTableData - Récupération des données pour la table: ${tableName}`)
+
+    loading.value = true
+    error.value = null
+
+    try {
+      const query = supabase.from(tableName).select('*').limit(1000) // Limit pour éviter les gros datasets
+
+      const { data: result, error: fetchError } = await query
+
+      if (fetchError) {
+        throw fetchError
+      }
+
+      // Stocker les données spécifiques à cette table
+      if (tableDataStore[tableName as keyof typeof tableDataStore] !== null) {
+        tableDataStore[tableName as keyof typeof tableDataStore] = {
+          data: result || [],
+          filterOptions: extractFilterOptions(result || []),
+          lastFetch: new Date(),
+        }
+      }
+
+      // Mettre à jour les données globales si c'est la table traffic (pour compatibilité avec useTrafficMetrics)
+      if (tableName === 'traffic') {
+        data.value = result || []
+        updateFilterOptions() // Utiliser l'ancienne méthode pour mise à jour
+      }
+
+      // Mettre à jour les filterOptions globaux avec cette table
+      if (result && result.length > 0) {
+        updateFilterOptionsFromTable(result)
+      }
+
+      console.log(`✅ Données ${tableName} récupérées:`, result?.length || 0, 'enregistrements')
+    } catch (err) {
+      console.error(`❌ Erreur lors de la récupération des données ${tableName}:`, err)
+      error.value = err instanceof Error ? err.message : String(err)
+    } finally {
+      loading.value = false
+    }
+  }
+
+  // Fonction pour extraire les options de filtre d'une table spécifique
+  const extractFilterOptions = (tableData: any[]) => {
+    const countries = new Set<string>()
+    const industries = new Set<string>()
+    const devices = new Set<string>()
+    const analysisMonths = new Set<string>()
+
+    tableData.forEach((item) => {
+      if (item.country && item.country.trim()) {
+        const country = item.country.trim()
+        countries.add(country)
+      }
+      if (item.industry && item.industry.trim()) {
+        industries.add(item.industry.trim())
+      }
+      if (item.device && item.device.trim()) {
+        devices.add(item.device.trim())
+      }
+      if (item.analysis_month && item.analysis_month.trim()) {
+        analysisMonths.add(item.analysis_month.trim())
+      }
+    })
+
+    return {
+      countries: Array.from(countries).sort(),
+      industries: Array.from(industries).sort(),
+      devices: Array.from(devices).sort(),
+      analysis_months: Array.from(analysisMonths).sort(),
+    }
+  }
+
+  // Fonction pour mettre à jour les filterOptions globaux à partir d'une table
+  const updateFilterOptionsFromTable = (tableData: any[]) => {
+    console.log('updateFilterOptionsFromTable - Mise à jour des options de filtre')
+
+    const newOptions = extractFilterOptions(tableData)
+
+    filterOptions.value = {
+      countries: newOptions.countries,
+      industries: newOptions.industries,
+      devices: newOptions.devices,
+      analysis_months: newOptions.analysis_months,
+    }
+
+    console.log('Nouvelles options de filtre:', newOptions)
+    console.log('🇺🇸 Pays disponibles:', newOptions.countries)
+    console.log('🏭 Industries disponibles:', newOptions.industries)
+    console.log('📱 Devices disponibles:', newOptions.devices)
+  }
+
   const instance = {
     // État
     data: computed(() => data.value),
@@ -305,6 +408,7 @@ export function useSupabaseData() {
 
     // Méthodes
     fetchAllData,
+    fetchTableData,
     fetchTotalRecords,
     getFilteredData,
     insertData,

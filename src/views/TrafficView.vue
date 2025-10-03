@@ -13,7 +13,8 @@
           <div class="flex flex-col">
             <h3 class="text-3xl font-newedge text-[#8D0A38]">Traffic</h3>
             <span class="text-gray-600 font-normal pt-1">
-              Compare performance against <strong>{{ globalFilters.selectedIndustry }}</strong>
+              Compare performance with benchmarks from
+              <strong>{{ globalFilters.selectedIndustry }}</strong>
             </span>
           </div>
           <div class="flex items-center gap-4"></div>
@@ -74,7 +75,6 @@ import {
   TrafficShareByTypes,
   TrafficChangeByType,
   TrafficShareByAcquisitionMoM,
-  TrafficShareByChannelYoY,
   TopAcquisitionChannels,
 } from '@/components/traffic'
 

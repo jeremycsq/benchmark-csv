@@ -3,7 +3,7 @@
     ref="headerRef"
     :class="[
       'bg-white border-b border-gray-200 shadow-sm',
-      $route.path === '/admin' ? '' : 'sticky top-0 z-50',
+      $route.path === '/admin' ? '' : 'sticky top-0 z-[60]',
     ]"
   >
     <div

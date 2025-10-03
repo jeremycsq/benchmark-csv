@@ -123,7 +123,7 @@
     <!-- Dropdown -->
     <div
       v-if="open && !loading"
-      class="absolute left-0 z-20 mt-2 w-full min-w-[220px] bg-white border border-gray-200 rounded-xl shadow-lg"
+      class="absolute left-0 z-[70] mt-2 w-full min-w-[220px] bg-white border border-gray-200 rounded-xl shadow-lg"
     >
       <ul class="py-1">
         <li

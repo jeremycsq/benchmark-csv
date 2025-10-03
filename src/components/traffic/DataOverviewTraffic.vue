@@ -1,20 +1,20 @@
 <template>
-  <section class="bg-white">
+  <section class="bg-white relative z-50">
     <div class="max-w-7xl mx-auto px-4 pt-4 pb-1">
       <h2 class="font-newedge text-4xl text-center mb-2" :style="{ color: pageConfig.titleColor }">
         {{ dynamicTitle }}
       </h2>
       <p class="text-center text-gray-800 mb-8">
-        Data covers same-site activity from Q4 2023 to Q4 2024. Scroll down to the methodology
-        section to see how we gathered this data.
+        Select filters to view traffic benchmarks for specific markets, industries, devices, and
+        audiences.
       </p>
       <div class="flex justify-center items-start gap-8 mb-8">
         <!-- Labels verticaux -->
         <div class="flex flex-col gap-8 items-center justify-center">
-          <div class="flex items-center h-[140px]">
+          <div class="flex items-center h-[100px]">
             <span class="font-newedge text-3xl text-[#000000] rotate-[-90deg]">YoY</span>
           </div>
-          <div class="flex items-center h-[140px]">
+          <div class="flex items-center h-[100px]">
             <span class="font-newedge text-3xl text-[#000000] rotate-[-90deg]">MoM</span>
           </div>
         </div>
@@ -25,7 +25,8 @@
             <div
               v-for="(metric, index) in pageConfig.yoyMetrics"
               :key="`yoy-${index}`"
-              class="border border-[#000000] p-4 flex flex-col justify-center min-w-[200px] min-h-[100px] bg-white relative"
+              class="group border border-[#000000] p-4 flex flex-col justify-center min-w-[0px] min-h-[100px] bg-white relative"
+              :title="metric.description"
               :class="{ 'rounded-2xl': metric.isRounded }"
             >
               <div
@@ -41,9 +42,6 @@
                 {{ getMetricValue(metric, 'yoy', index) }}
               </div>
               <div class="font-medium text-sm mb-1">{{ metric.label }}</div>
-              <div class="text-gray-600 font-normal">
-                {{ metric.description }}
-              </div>
               <!-- Icône de flèche -->
               <div class="absolute top-6 right-6">
                 <svg
@@ -75,6 +73,12 @@
                   />
                 </svg>
               </div>
+              <!-- Tooltip -->
+              <div
+                class="pointer-events-none absolute left-0 right-0 top-full mt-2 bg-[#111827] text-white text-xs px-3 py-2 rounded shadow-md opacity-0 group-hover:opacity-100 transition whitespace-normal break-words z-50 text-center"
+              >
+                {{ metric.description }}
+              </div>
             </div>
           </div>
           <!-- Ligne MoM -->
@@ -82,7 +86,8 @@
             <div
               v-for="(metric, index) in pageConfig.momMetrics"
               :key="`mom-${index}`"
-              class="border border-[#000000] p-4 flex flex-col justify-center min-w-[200px] min-h-[100px] bg-white relative"
+              class="group border border-[#000000] p-4 flex flex-col justify-center min-w-[200px] min-h-[100px] bg-white relative"
+              :title="metric.description"
               :class="{ 'rounded-2xl': metric.isRounded }"
             >
               <div
@@ -98,9 +103,6 @@
                 {{ getMetricValue(metric, 'mom', index) }}
               </div>
               <div class="font-medium text-sm mb-1">{{ metric.label }}</div>
-              <div class="text-gray-600 font-normal">
-                {{ metric.description }}
-              </div>
               <!-- Icône de flèche -->
               <div class="absolute top-6 right-6">
                 <svg
@@ -131,6 +133,12 @@
                     d="M17 7l-9.2 9.2M7 7v10h10"
                   />
                 </svg>
+              </div>
+              <!-- Tooltip -->
+              <div
+                class="pointer-events-none absolute left-0 right-0 top-full mt-2 bg-[#111827] text-white text-xs px-3 py-2 rounded shadow-md opacity-0 group-hover:opacity-100 transition whitespace-normal break-words z-50 text-center"
+              >
+                {{ metric.description }}
               </div>
             </div>
           </div>
@@ -169,8 +177,8 @@ const dynamicTitle = computed(() => {
 
   // Mapping des titres pour traffic
   const titles = {
-    all: 'Reveal which metrics need immediate client attention',
-    month: (m: string) => `How has Traffic evolved in ${m} ?`,
+    all: 'Traffic Performance overview',
+    month: (m: string) => `Traffic Performance overview in ${m}`,
   }
 
   if (!month || month === 'All months') {

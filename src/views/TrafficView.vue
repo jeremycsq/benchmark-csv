@@ -13,7 +13,7 @@
           <div class="flex flex-col">
             <h3 class="text-3xl font-newedge text-[#8D0A38]">Traffic</h3>
             <span class="text-gray-600 font-normal pt-1">
-              Compare your metrics to specific peers in the traffic category
+              Compare performance against <strong>{{ globalFilters.selectedIndustry }}</strong>
             </span>
           </div>
           <div class="flex items-center gap-4"></div>
@@ -30,7 +30,7 @@
         <span
           class="bg-[#FFDCDB] text-[#8D0A38] px-2 py-1 rounded-md text-sm font-semibold mt-4 inline-block reveal-up"
         >
-          Traffic share by types
+          Traffic splits
         </span>
         <TrafficShareByTypes />
         <!-- Nouveau bloc "Change" -->
@@ -44,9 +44,9 @@
         <span
           class="bg-[#FFDCDB] text-[#8D0A38] px-2 py-1 rounded-md text-sm font-semibold mt-4 inline-block reveal-up"
         >
-          Traffic share by major acquisition source
+          Top acquisition channels (YoY change)
         </span>
-        <TrafficShareByAcquisition />
+        <TopAcquisitionChannels />
         <!-- Section: Traffic share by acquisition type MoM change -->
         <span
           class="bg-[#FFDCDB] text-[#8D0A38] px-2 py-1 rounded-md text-sm font-semibold mt-4 inline-block reveal-up"
@@ -55,13 +55,6 @@
         </span>
         <TrafficShareByAcquisitionMoM />
 
-        <!-- Section: Traffic share by acquisition channel YoY change -->
-        <span
-          class="bg-[#FFDCDB] text-[#8D0A38] px-2 py-1 rounded-md text-sm font-semibold mt-4 inline-block reveal-up"
-        >
-          Traffic share by acquisition channel YoY change
-        </span>
-        <TrafficShareByChannelYoY />
         <!-- Nouveau bloc "Change - Bounce rates" -->
       </div>
     </section>
@@ -80,9 +73,9 @@ import {
   TrafficOverview,
   TrafficShareByTypes,
   TrafficChangeByType,
-  TrafficShareByAcquisition,
   TrafficShareByAcquisitionMoM,
   TrafficShareByChannelYoY,
+  TopAcquisitionChannels,
 } from '@/components/traffic'
 
 // Animation générale

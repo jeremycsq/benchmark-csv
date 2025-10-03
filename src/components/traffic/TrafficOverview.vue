@@ -5,7 +5,7 @@
         class="flex flex-row items-center justify-start gap-4 border-b border-[#FFEAE3] pb-4 w-full"
       >
         <div class="px-2 py-1 rounded text-sm font-medium" style="border-radius: 4px">
-          Traffic Overview
+          Traffic overview
         </div>
       </div>
     </div>

@@ -3,10 +3,14 @@
     <div class="pie-canvas-wrapper">
       <canvas ref="chartRef"></canvas>
     </div>
-    <div class="flex flex-col items-center justify-center gap-2 mt-4 w-full">
-      <div v-for="(label, i) in labels" :key="label" class="flex items-center gap-2">
+    <div class="flex flex-row flex-nowrap justify-between items-center gap-6 mt-4 w-full">
+      <div
+        v-for="(label, i) in labels"
+        :key="label"
+        class="flex items-center justify-center gap-2 flex-1 min-w-0"
+      >
         <span class="w-4 h-4 rounded-full block" :style="{ background: colors[i] }"></span>
-        <span class="text-xs text-left" :style="{ color: labelColor || '#000' }"
+        <span class="text-xs text-center" :style="{ color: labelColor || '#000' }"
           >{{ label }} : {{ values[i].toFixed(1) }}%</span
         >
       </div>

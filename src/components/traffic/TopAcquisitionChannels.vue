@@ -1,6 +1,5 @@
 <template>
   <div class="flex flex-col md:flex-row mt-8 reveal-up">
-    <!-- Labels à gauche -->
     <div class="w-full md:w-1/3 flex flex-col items-start gap-10 justify-center">
       <div
         class="flex flex-row items-center justify-start gap-4 border-b border-[#FFEAE3] pb-4 w-full"
@@ -10,7 +9,7 @@
         </div>
       </div>
     </div>
-    <!-- Graphiques à droite (Pie chart) -->
+
     <div class="w-full md:w-2/3 bg-white border border-[#FFEAEA] p-6 rounded-lg">
       <PieChart :values="pieValues" :labels="pieLabels" :colors="pieColors" />
     </div>
@@ -24,7 +23,6 @@ import PieChart from '@/components/charts/PieChart.vue'
 
 const { acquisitionMetrics } = useTrafficMetrics()
 
-// Construire les données pour un pie chart de répartition (parts positives)
 const acquisitionData = computed(() => {
   if (!acquisitionMetrics.value || acquisitionMetrics.value.length === 0) {
     return [
@@ -35,7 +33,6 @@ const acquisitionData = computed(() => {
       { label: 'Paid', value: 10 },
     ]
   }
-  // Si le composable retourne des variations, on convertit en parts absolues
   const vals = acquisitionMetrics.value.map((d) => Math.max(0, Number(d.value)))
   const total = vals.reduce((a, b) => a + b, 0) || 1
   return acquisitionMetrics.value.map((d, i) => ({

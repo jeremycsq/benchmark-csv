@@ -96,12 +96,12 @@
         >
           {{
             $route.path === '/traffic'
-              ? 'Download Traffic'
+              ? 'Download traffic'
               : $route.path === '/engagement'
-                ? 'Download Engagement'
+                ? 'Download engagement'
                 : $route.path === '/frustration'
-                  ? 'Download Frustration'
-                  : 'Download Conversion'
+                  ? 'Download frustration'
+                  : 'Download conversion'
           }}
         </button>
       </div>
@@ -349,9 +349,9 @@ const route = useRoute()
 const downloadSectionsMap = {
   '/traffic': [
     { label: 'Overview', value: 'overview' },
-    { label: 'Traffic share by types', value: 'traffic_share' },
+    { label: 'Traffic splits', value: 'traffic_share' },
     { label: 'Change by type', value: 'change_type' },
-    { label: 'Traffic share by acquisition source', value: 'acquisition_share' },
+    { label: 'Top acquisition channels (YoY change)', value: 'acquisition_share' },
   ],
   '/engagement': [
     { label: 'Overview', value: 'overview' },
@@ -370,11 +370,11 @@ const downloadSections = computed(
   () => downloadSectionsMap[route.path as keyof typeof downloadSectionsMap] || [],
 )
 const downloadModalTitle = computed(() => {
-  if (route.path === '/traffic') return 'Download Traffic Data'
-  if (route.path === '/engagement') return 'Download Engagement Data'
-  if (route.path === '/frustration') return 'Download Frustration Data'
-  if (route.path === '/conversion') return 'Download Conversion Data'
-  return 'Download Data'
+  if (route.path === '/traffic') return 'Download traffic data'
+  if (route.path === '/engagement') return 'Download engagement data'
+  if (route.path === '/frustration') return 'Download frustration data'
+  if (route.path === '/conversion') return 'Download conversion data'
+  return 'Download data'
 })
 const downloadModalTheme = computed(() => {
   if (route.path === '/traffic') return 'traffic'

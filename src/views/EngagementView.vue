@@ -73,12 +73,14 @@ import {
   EngagementPageLevel,
 } from '@/components/engagement'
 import { useScrollReveal } from '@/composables/useScrollReveal'
-import { ref, computed, watch } from 'vue'
+import { ref, computed, watch, onMounted } from 'vue'
 import { useEngagementDataStore } from '@/stores/engagementData'
 import { useGlobalFiltersStore } from '@/stores/globalFilters'
+import { useRoute } from 'vue-router'
 
 const engagementStore = useEngagementDataStore()
 const globalFilters = useGlobalFiltersStore()
+const route = useRoute()
 
 // Refs pour les composants
 const engagementOverviewRef = ref()
@@ -140,5 +142,24 @@ watch(
     engagementPageLevelRef.value?.randomizeBenchmarkTable()
   },
   { immediate: true },
+)
+
+// Initialiser les données Supabase pour la table engagement
+onMounted(() => {
+  console.log('🔧 EngagementView - Chargement des données de la table engagement')
+  globalFilters.initializeData('engagement')
+})
+
+// Recharger si navigation directe vers /engagement
+watch(
+  () => route.path,
+  (newPath) => {
+    if (newPath === '/engagement') {
+      console.log(
+        '📄 EngagementView - Navigation détectée vers /engagement, rechargement des données',
+      )
+      globalFilters.initializeData('engagement')
+    }
+  },
 )
 </script>

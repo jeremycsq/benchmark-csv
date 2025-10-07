@@ -161,14 +161,12 @@ const props = defineProps<Props>()
 const globalFilters = useGlobalFiltersStore()
 
 // Connexion aux données Supabase pour l'engagement
-const { engagementMetrics, yoyChanges, momChanges, isLoading, error } = useEngagementMetrics()
+const { engagementMetrics, yoyChanges, momChanges } = useEngagementMetrics()
 
 // Debug: afficher les données reçues
 console.log('DataOverviewEngagement - engagementMetrics:', engagementMetrics.value)
 console.log('DataOverviewEngagement - yoyChanges:', yoyChanges.value)
 console.log('DataOverviewEngagement - momChanges:', momChanges.value)
-console.log('DataOverviewEngagement - isLoading:', isLoading.value)
-console.log('DataOverviewEngagement - error:', error.value)
 
 const pageConfig = computed<PageMetrics>(() => {
   return pageConfigs.engagement

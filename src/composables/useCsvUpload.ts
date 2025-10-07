@@ -52,6 +52,12 @@ export function useCsvUpload(tableName: string = 'traffic') {
     if (currentTableName === 'frustration') {
       console.log('✅ Utilisant validateAndTransformFrustrationData')
       return validateAndTransformFrustrationData(csvData)
+    } else if (currentTableName === 'engagement') {
+      console.log('✅ Utilisant validateAndTransformEngagementData')
+      return validateAndTransformEngagementData(csvData)
+    } else if (currentTableName === 'conversion') {
+      console.log('✅ Utilisant validateAndTransformConversionData')
+      return validateAndTransformConversionData(csvData)
     } else {
       console.log('⚠️ Fallback sur validateAndTransformTrafficData')
       return validateAndTransformTrafficData(csvData)
@@ -494,6 +500,93 @@ export function useCsvUpload(tableName: string = 'traffic') {
     return { valid, errors }
   }
 
+  // Validation spécifique pour la table engagement
+  const validateAndTransformEngagementData = (
+    csvData: Record<string, unknown>[],
+  ): { valid: GenericData[]; errors: string[] } => {
+    console.log('📈 validateAndTransformEngagementData appelée')
+    const valid: GenericData[] = []
+    const errors: string[] = []
+
+    const requiredHeaders = ['ANALYSIS_MONTH', 'INDUSTRY', 'COUNTRY_CODE', 'DEVICE_ID']
+
+    csvData.forEach((row, index) => {
+      try {
+        if (index < 2) {
+          console.log(`🧪 LIGNE ENGAGEMENT ${index + 2}:`, row)
+        }
+
+        // Vérifier quelques colonnes minimales
+        const missing = requiredHeaders.filter(
+          (h) => row[h] === undefined || row[h] === null || String(row[h]).trim() === '',
+        )
+        if (missing.length > 0) {
+          errors.push(`Ligne ${index + 2}: Champs manquants: ${missing.join(', ')}`)
+          return
+        }
+
+        // Convertir les chaînes vides en null pour permettre les casts Postgres
+        const cleaned: GenericData = {}
+        Object.entries(row).forEach(([k, v]) => {
+          cleaned[k] = v === '' ? null : v
+        })
+
+        valid.push(cleaned)
+      } catch (e) {
+        errors.push(`Ligne ${index + 2}: Erreur de transformation - ${e}`)
+      }
+    })
+
+    return { valid, errors }
+  }
+
+  // Validation spécifique pour la table conversion
+  const validateAndTransformConversionData = (
+    csvData: Record<string, unknown>[],
+  ): { valid: GenericData[]; errors: string[] } => {
+    console.log('🛒 validateAndTransformConversionData appelée')
+    const valid: GenericData[] = []
+    const errors: string[] = []
+
+    const requiredHeaders = ['ANALYSIS_MONTH', 'INDUSTRY', 'COUNTRY_CODE', 'DEVICE_ID']
+
+    csvData.forEach((row, index) => {
+      try {
+        if (index < 3) {
+          console.log(`🧪 LIGNE CONVERSION ${index + 2}:`, row)
+          console.log('Clés disponibles:', Object.keys(row))
+        }
+
+        // Vérifier quelques colonnes minimales
+        const missing = requiredHeaders.filter(
+          (h) => row[h] === undefined || row[h] === null || String(row[h]).trim() === '',
+        )
+        if (missing.length > 0) {
+          errors.push(`Ligne ${index + 2}: Champs manquants: ${missing.join(', ')}`)
+          return
+        }
+
+        // Convertir les chaînes vides en null et NORMALISER les clés en snake_case/lowercase
+        const cleaned: GenericData = {}
+        Object.entries(row).forEach(([k, v]) => {
+          const key = String(k).toLowerCase() // 'ADD_TO_CART_RATE' -> 'add_to_cart_rate'
+          cleaned[key] = v === '' ? null : v
+        })
+
+        // Retirer la colonne id (la table conversion n'a pas de colonne id)
+        if (cleaned.id !== undefined) {
+          delete cleaned.id
+        }
+
+        valid.push(cleaned)
+      } catch (e) {
+        errors.push(`Ligne ${index + 2}: Erreur de transformation - ${e}`)
+      }
+    })
+
+    return { valid, errors }
+  }
+
   // Vérifier les ID existants et résoudre les conflits
   const resolveIdConflicts = async (
     csvData: Record<string, unknown>[],
@@ -552,11 +645,17 @@ export function useCsvUpload(tableName: string = 'traffic') {
       const csvData = await parseCsvFile(file)
       console.log(`📊 CSV parsé: ${csvData.length} lignes`)
 
-      // Étape 2: Résoudre les conflits d'ID
+      const currentTableName = dynamicTableName.value
+      // Étape 2: Résoudre les conflits d'ID (uniquement pour les tables avec ID)
       progress.value = 40
-      console.log('🔍 Résolution conflits ID...')
-      const resolvedData = await resolveIdConflicts(csvData)
-      console.log(`✅ Conflits résolus: ${resolvedData.length} lignes`)
+      let resolvedData: Record<string, unknown>[] = csvData
+      if (currentTableName !== 'engagement') {
+        console.log('🔍 Résolution conflits ID...')
+        resolvedData = await resolveIdConflicts(csvData)
+        console.log(`✅ Conflits résolus: ${resolvedData.length} lignes`)
+      } else {
+        console.log("⏭️ Pas de gestion d'ID pour engagement (pas de colonne id)")
+      }
 
       // Étape 3: Valider et transformer
       progress.value = 60
@@ -592,10 +691,13 @@ export function useCsvUpload(tableName: string = 'traffic') {
 
       console.log(`💾 Insertion en base: ${valid.length} enregistrements`)
 
-      const currentTableName = dynamicTableName.value
-      if (currentTableName === 'frustration') {
+      if (
+        currentTableName === 'frustration' ||
+        currentTableName === 'engagement' ||
+        currentTableName === 'conversion'
+      ) {
         // Insertion directe pour frustration
-        console.log('🎯 Mode frustration: insertion directe')
+        console.log(`🎯 Mode ${currentTableName}: insertion directe`)
         for (let i = 0; i < valid.length; i += batchSize) {
           const batch = valid.slice(i, i + batchSize)
           console.log(`📦 Lot ${Math.floor(i / batchSize) + 1}: ${batch.length} items`)

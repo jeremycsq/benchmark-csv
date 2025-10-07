@@ -76,21 +76,24 @@ export const useGlobalFiltersStore = defineStore('globalFilters', () => {
     const devices = filterOptions.value.devices || []
     let mapped = []
 
+    const mapCommon = (d: string) => {
+      const val = String(d).toLowerCase()
+      if (val === '1') return { label: 'Desktop', value: 'Desktop' }
+      if (val === '2') return { label: 'Mobile', value: 'Mobile' }
+      if (val === 'tablet') return { label: 'Tablet', value: 'Tablet' }
+      return { label: d, value: d }
+    }
+
     if (activeTable.value === 'traffic') {
       // Pour traffic : mapper les codes numériques
       mapped = devices
         .filter((d: string) => String(d).toLowerCase() !== 'all_devices')
-        .map((d: string) => {
-          const val = String(d).toLowerCase()
-          if (val === '1') return { label: 'Desktop', value: 'Desktop' }
-          if (val === '2') return { label: 'Mobile', value: 'Mobile' }
-          return { label: d, value: d }
-        })
+        .map((d: string) => mapCommon(d))
     } else {
-      // Pour frustration, engagement, conversion : valeurs texte directes
+      // Pour frustration, engagement, conversion : mapper aussi 1/2 → Desktop/Mobile et filtrer all_device(s)
       mapped = devices
         .filter((d: string) => !['all_device', 'all_devices'].includes(String(d).toLowerCase()))
-        .map((d: string) => ({ label: d, value: d }))
+        .map((d: string) => mapCommon(d))
     }
 
     return [{ label: 'All devices', value: 'All devices' }, ...mapped]

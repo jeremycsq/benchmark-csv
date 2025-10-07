@@ -26,6 +26,9 @@
           <div class="flex-1 flex flex-col items-center justify-between">
             <LineChart
               :data="engagementChartData"
+              :yMin="yScale.min"
+              :yMax="yScale.max"
+              :yStep="yScale.step"
               labelColor="#ADD2A5"
               gridColor="#E9F5E4"
               class="w-full h-full"
@@ -38,63 +41,150 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, watch } from 'vue'
+import { ref, computed, watch, onMounted } from 'vue'
 import { LineChart } from '@/components/charts'
+import { useGlobalFiltersStore } from '@/stores/globalFilters'
+import { supabase } from '@/lib/supabase'
 
-// Données dynamiques pour le graphique Engagement
-const baseCurves = {
-  byDevice: [180, 60, 120, 80, 200],
-  newReturning: [200, 100, 120, 40, 120],
-  paidUnpaid: [120, 220, 80, 110, 120, 160],
+const globalFilters = useGlobalFiltersStore()
+
+const rows = ref<any[]>([])
+
+const norm = (v: unknown) => (v === undefined || v === null ? '' : String(v).trim())
+const mapDevice = (label: string): string => {
+  const l = label.toLowerCase()
+  if (l === 'desktop') return '1'
+  if (l === 'mobile') return '2'
+  return label
+}
+const mapCountryToCode = (label: string): string => {
+  const m: Record<string, string> = {
+    Australia: 'AU',
+    AU: 'AU',
+    Canada: 'CA',
+    CA: 'CA',
+    Germany: 'DE',
+    DE: 'DE',
+    France: 'FR',
+    FR: 'FR',
+    'United Kingdom': 'GB',
+    UK: 'GB',
+    GB: 'GB',
+    Italy: 'IT',
+    IT: 'IT',
+    Japan: 'JP',
+    JP: 'JP',
+    'United States': 'US',
+    USA: 'US',
+    US: 'US',
+    Global: 'Global',
+  }
+  return m[label] || label
 }
 
-const curves = ref({
-  byDevice: [...baseCurves.byDevice],
-  newReturning: [...baseCurves.newReturning],
-  paidUnpaid: [...baseCurves.paidUnpaid],
+async function fetchTimeseries() {
+  const isAllCountries = norm(globalFilters.selectedCountry).toLowerCase().startsWith('all ')
+  const country = isAllCountries ? 'Global' : mapCountryToCode(globalFilters.selectedCountry)
+  const isAllIndustries = norm(globalFilters.selectedIndustry).toLowerCase().startsWith('all ')
+  const industry = isAllIndustries ? '' : globalFilters.selectedIndustry
+  const isAllDevices = norm(globalFilters.selectedDevice).toLowerCase().startsWith('all ')
+  const device = isAllDevices ? 'all_devices' : mapDevice(globalFilters.selectedDevice)
+
+  try {
+    let q = supabase
+      .from('engagement')
+      .select('ANALYSIS_MONTH,PAGEVIEWS_MOM_CHANGE,TIME_SPENT_MOM_CHANGE,SCROLL_RATE_MOM_CHANGE')
+      .order('ANALYSIS_MONTH', { ascending: true })
+
+    if (country) q = q.eq('COUNTRY_CODE', country)
+    if (device) q = q.eq('DEVICE_ID', device)
+    if (industry) q = q.eq('INDUSTRY', industry)
+
+    const { data, error } = await q
+    if (error) throw error
+    rows.value = data || []
+  } catch (e) {
+    console.error('fetchTimeseries engagement error:', e)
+    rows.value = []
+  }
+}
+
+onMounted(fetchTimeseries)
+watch(
+  () => [
+    globalFilters.selectedCountry,
+    globalFilters.selectedIndustry,
+    globalFilters.selectedDevice,
+    globalFilters.selectedMonth, // non filtré ici (on trace l\'overtime)
+  ],
+  fetchTimeseries,
+)
+
+const engagementChartData = computed(() => {
+  const labels = rows.value.map((r) => r.ANALYSIS_MONTH)
+  const series1 = rows.value.map((r) => Number(r.PAGEVIEWS_MOM_CHANGE ?? 0))
+  const series2 = rows.value.map((r) => Number(r.TIME_SPENT_MOM_CHANGE ?? 0))
+  const series3 = rows.value.map((r) => Number(r.SCROLL_RATE_MOM_CHANGE ?? 0))
+
+  const allValues = [...series1, ...series2, ...series3]
+  const maxVal = allValues.length ? Math.max(...allValues) : 0
+  const minVal = allValues.length ? Math.min(...allValues) : 0
+
+  return {
+    labels,
+    datasets: [
+      {
+        label: 'Pageviews per Session',
+        data: series1,
+        borderColor: '#C1E3B1',
+        backgroundColor: '#C1E3B1',
+        tension: 0.4,
+      },
+      {
+        label: 'Time per Session',
+        data: series2,
+        borderColor: '#2E614F',
+        backgroundColor: '#2E614F',
+        tension: 0.4,
+      },
+      {
+        label: 'Scroll Rate',
+        data: series3,
+        borderColor: '#6D9A7A',
+        backgroundColor: '#6D9A7A',
+        tension: 0.4,
+      },
+    ],
+  }
 })
 
-function randomizeCurves() {
-  curves.value.byDevice = baseCurves.byDevice.map((y) => y + Math.floor(Math.random() * 21) - 10)
-  curves.value.newReturning = baseCurves.newReturning.map(
-    (y) => y + Math.floor(Math.random() * 21) - 10,
-  )
-  curves.value.paidUnpaid = baseCurves.paidUnpaid.map(
-    (y) => y + Math.floor(Math.random() * 21) - 10,
-  )
-}
+// Calcul des bornes pour LineChart (composant générique)
+const yScale = computed(() => {
+  const values = rows.value.flatMap((r) => [
+    Number(r.PAGEVIEWS_MOM_CHANGE ?? 0),
+    Number(r.TIME_SPENT_MOM_CHANGE ?? 0),
+    Number(r.SCROLL_RATE_MOM_CHANGE ?? 0),
+  ])
+  if (values.length === 0) return { min: -1, max: 1, step: 0.5 }
 
-const engagementChartData = computed(() => ({
-  labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
-  datasets: [
-    {
-      label: 'Pageviews Per Visit',
-      data: curves.value.byDevice.map((y) => Math.max(5, Math.min(100, 100 - y / 2))),
-      borderColor: '#C1E3B1',
-      backgroundColor: '#C1E3B1',
-      tension: 0.4,
-    },
-    {
-      label: 'Time Per Session',
-      data: curves.value.newReturning.map((y) => Math.max(5, Math.min(100, 100 - y / 2))),
-      borderColor: '#2E614F',
-      backgroundColor: '#2E614F',
-      tension: 0.4,
-    },
-    {
-      label: 'Scroll Rate',
-      data: curves.value.paidUnpaid.map((y) => Math.max(5, Math.min(100, 100 - y / 2))),
-      borderColor: '#6D9A7A',
-      backgroundColor: '#6D9A7A',
-      tension: 0.4,
-    },
-  ],
-}))
+  const maxVal = Math.max(...values)
+  const minVal = Math.min(...values)
+  const padding = Math.max(0.1, Math.abs(maxVal - minVal) * 0.1)
+  const upper = Math.max(maxVal + padding, 0.5)
+  const lower = Math.min(minVal - padding, -0.5)
+  const max = Math.ceil(upper * 2) / 2
+  const min = Math.floor(lower * 2) / 2
 
-watch([], randomizeCurves, { immediate: true })
+  // step: 5 graduations environ
+  const range = Math.max(0.5, max - min)
+  const roughStep = range / 5
+  const step = Math.max(0.1, Math.round(roughStep * 2) / 2)
+  return { min, max, step }
+})
 
-// Expose la fonction pour que le parent puisse l'appeler
+// Expose (rétro-compat) pour déclencher un refresh depuis le parent si besoin
 defineExpose({
-  randomizeCurves,
+  updateRadialData: fetchTimeseries,
+  randomizeCurves: fetchTimeseries,
 })
 </script>

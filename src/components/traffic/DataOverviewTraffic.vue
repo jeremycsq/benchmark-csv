@@ -25,7 +25,7 @@
             <div
               v-for="(metric, index) in pageConfig.yoyMetrics"
               :key="`yoy-${index}`"
-              class="group border border-[#000000] p-4 flex flex-col justify-center min-w-[0px] min-h-[100px] bg-white relative"
+              class="group border border-[#2E614F] p-4 flex flex-col justify-center min-w-[0px] min-h-[100px] bg-white relative hover:border-[#FFB6B5]/40 hover:shadow-sm transition cursor-pointer"
               :title="metric.description"
               :class="{ 'rounded-2xl': metric.isRounded }"
             >
@@ -86,7 +86,7 @@
             <div
               v-for="(metric, index) in pageConfig.momMetrics"
               :key="`mom-${index}`"
-              class="group border border-[#000000] p-4 flex flex-col justify-center min-w-[200px] min-h-[100px] bg-white relative"
+              class="group border border-[#2E614F] p-4 flex flex-col justify-center min-w-[200px] min-h-[100px] bg-white relative hover:border-[#FFB6B5]/40 hover:shadow-sm transition cursor-pointer"
               :title="metric.description"
               :class="{ 'rounded-2xl': metric.isRounded }"
             >
@@ -177,7 +177,7 @@ const dynamicTitle = computed(() => {
 
   // Mapping des titres pour traffic
   const titles = {
-    all: 'Traffic Performance overview',
+    all: 'Traffic performance overview',
     month: (m: string) => `Traffic Performance overview in ${m}`,
   }
 

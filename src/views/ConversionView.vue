@@ -1,11 +1,10 @@
 <template>
   <div class="min-h-screen">
-    <DataOverview
-      pageType="conversion"
-      :conversionStore="conversionStore"
-      class="reveal-up reveal-fade"
-      :key="$route.path"
-    />
+    <section class="bg-white reveal-up reveal-fade">
+      <div class="max-w-7xl mx-auto px-8">
+        <DataOverviewConversion />
+      </div>
+    </section>
     <section class="bg-[#EEEFF1] reveal-up">
       <div class="max-w-7xl mx-auto px-8 py-12">
         <div class="flex flex-col md:flex-row md:items-center md:justify-between mb-4">
@@ -85,11 +84,11 @@
 </template>
 
 <script setup lang="ts">
-import DataOverview from '@/components/DataOverview.vue'
+import DataOverviewConversion from '@/components/conversion/DataOverviewConversion.vue'
 import { useScrollReveal } from '@/composables/useScrollReveal'
-import { ref, computed, watch } from 'vue'
+import { ref, computed, watch, onMounted } from 'vue'
 import { useGlobalFiltersStore } from '@/stores/globalFilters'
-import { useConversionDataStore } from '@/stores/conversionData'
+// import { useConversionDataStore } from '@/stores/conversionData'
 import {
   ConversionOverview,
   ConversionEcommerceMetrics,
@@ -99,7 +98,9 @@ import {
 } from '@/components/conversion'
 
 const globalFilters = useGlobalFiltersStore()
-const conversionStore = useConversionDataStore()
+// Ancien store non utilisé par ce composant depuis le passage à DataOverviewConversion
+// Conservé si d'autres sous-composants en dépendent plus bas dans la page
+// const conversionStore = useConversionDataStore()
 
 // Valeur dynamique pour le header
 const headerValue = ref(39)
@@ -162,5 +163,10 @@ useScrollReveal('.reveal-fade', {
   delay: 50,
   scale: 1,
   easing: 'ease-in-out',
+})
+
+// Forcer le chargement des options (pays, industries, devices) pour la table conversion
+onMounted(() => {
+  globalFilters.initializeData('conversion')
 })
 </script>

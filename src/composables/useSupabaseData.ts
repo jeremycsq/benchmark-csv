@@ -320,12 +320,10 @@ export function useSupabaseData() {
       }
 
       // Stocker les données spécifiques à cette table
-      if (tableDataStore[tableName as keyof typeof tableDataStore] !== null) {
-        tableDataStore[tableName as keyof typeof tableDataStore] = {
-          data: result || [],
-          filterOptions: extractFilterOptions(result || []),
-          lastFetch: new Date(),
-        }
+      tableDataStore[tableName as keyof typeof tableDataStore] = {
+        data: result || [],
+        filterOptions: extractFilterOptions(result || []),
+        lastFetch: new Date(),
       }
 
       // Mettre à jour les données globales si c'est la table traffic (pour compatibilité avec useTrafficMetrics)
@@ -356,19 +354,17 @@ export function useSupabaseData() {
     const analysisMonths = new Set<string>()
 
     tableData.forEach((item) => {
-      if (item.country && item.country.trim()) {
-        const country = item.country.trim()
-        countries.add(country)
-      }
-      if (item.industry && item.industry.trim()) {
-        industries.add(item.industry.trim())
-      }
-      if (item.device && item.device.trim()) {
-        devices.add(item.device.trim())
-      }
-      if (item.analysis_month && item.analysis_month.trim()) {
-        analysisMonths.add(item.analysis_month.trim())
-      }
+      const country = (item.country || item.COUNTRY_CODE || '').toString().trim()
+      if (country) countries.add(country)
+
+      const industry = (item.industry || item.INDUSTRY || '').toString().trim()
+      if (industry) industries.add(industry)
+
+      const device = (item.device || item.DEVICE_ID || '').toString().trim()
+      if (device && device.toLowerCase() !== 'all') devices.add(device)
+
+      const month = (item.analysis_month || item.ANALYSIS_MONTH || '').toString().trim()
+      if (month) analysisMonths.add(month)
     })
 
     return {
@@ -415,6 +411,64 @@ export function useSupabaseData() {
     updateData,
     deleteData,
     updateFilterOptions,
+    // Nouvelles API pour tables multiples
+    getTableData: (tableName: string) =>
+      computed(
+        () => (tableDataStore[tableName as keyof typeof tableDataStore]?.data as any[]) || [],
+      ),
+    getFilteredDataFor: (
+      tableName: string,
+      filters: Partial<{
+        country: string
+        industry: string
+        device: string
+        analysis_month: string
+      }>,
+    ) => {
+      return computed(() => {
+        const table = tableDataStore[tableName as keyof typeof tableDataStore]
+        const source: any[] = (table?.data as any[]) || []
+        let filtered = source
+
+        const norm = (v: unknown) => (v === undefined || v === null ? '' : String(v).trim())
+
+        if (filters.country) {
+          const fc = norm(filters.country).toUpperCase()
+          filtered = filtered.filter((item) => {
+            const a = norm((item as any).COUNTRY_CODE).toUpperCase()
+            const b = norm((item as any).country).toUpperCase()
+            const c = norm((item as any).country_code).toUpperCase()
+            return a === fc || b === fc || c === fc
+          })
+        }
+        if (filters.industry) {
+          const fi = norm(filters.industry)
+          filtered = filtered.filter((item) => {
+            const a = norm((item as any).INDUSTRY)
+            const b = norm((item as any).industry)
+            return a === fi || b === fi
+          })
+        }
+        if (filters.device) {
+          const fd = norm(filters.device)
+          filtered = filtered.filter((item) => {
+            const a = norm((item as any).DEVICE_ID)
+            const b = norm((item as any).device)
+            return a === fd || b === fd
+          })
+        }
+        if (filters.analysis_month) {
+          const fm = norm(filters.analysis_month)
+          filtered = filtered.filter((item) => {
+            const a = norm((item as any).ANALYSIS_MONTH)
+            const b = norm((item as any).analysis_month)
+            return a === fm || b === fm
+          })
+        }
+
+        return filtered
+      })
+    },
   }
 
   // Stocker l'instance globale

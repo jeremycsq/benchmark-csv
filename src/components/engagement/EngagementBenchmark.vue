@@ -26,7 +26,7 @@
           v-for="(item, idx) in barData"
           :key="'engagement-bar-' + String(idx)"
           :values="item.values"
-          :colors="config.labelColors"
+          :colors="labelColors"
           :label="item.label"
           :display="item.display"
           labelColor="#2E614F"
@@ -39,47 +39,143 @@
 </template>
 
 <script setup lang="ts">
-import { ref, watch } from 'vue'
-import { getBarChartConfig } from '@/config/charts/barChartData'
+import { ref, onMounted, watch } from 'vue'
+import { useGlobalFiltersStore } from '@/stores/globalFilters'
+import { supabase } from '@/lib/supabase'
 import MiniBarChart from '@/components/charts/MiniBarChart.vue'
 
-const config = getBarChartConfig('engagement')
-const barData = ref(config.data)
+const globalFilters = useGlobalFiltersStore()
+const labelColors = ['#C1E3B1', '#2E614F', '#6D9A7A']
+const barData = ref([
+  { label: 'Pageviews per Session', values: [0, 0, 0], display: (v: number) => v.toFixed(2) },
+  {
+    label: 'Time per Session',
+    values: [0, 0, 0],
+    display: (val: number) => {
+      const total = Math.round(val)
+      const minPart = Math.floor(total / 60)
+      const secPart = total % 60
+      return `${minPart}:${secPart.toString().padStart(2, '0')}`
+    },
+  },
+  { label: 'Scroll Rate', values: [0, 0, 0], display: (v: number) => v.toFixed(1) + '%' },
+])
 
-// Génération des données randomisées
-function randomFloat(min: number, max: number, decimals = 2) {
-  return +(Math.random() * (max - min) + min).toFixed(decimals)
+const norm = (v: unknown) => (v === undefined || v === null ? '' : String(v).trim())
+const mapDevice = (label: string): string => {
+  const l = label.toLowerCase()
+  if (l === 'desktop') return '1'
+  if (l === 'mobile') return '2'
+  return label
+}
+const mapCountryToCode = (label: string): string => {
+  const m: Record<string, string> = {
+    Australia: 'AU',
+    AU: 'AU',
+    Canada: 'CA',
+    CA: 'CA',
+    Germany: 'DE',
+    DE: 'DE',
+    France: 'FR',
+    FR: 'FR',
+    'United Kingdom': 'GB',
+    UK: 'GB',
+    GB: 'GB',
+    Italy: 'IT',
+    IT: 'IT',
+    Japan: 'JP',
+    JP: 'JP',
+    'United States': 'US',
+    USA: 'US',
+    US: 'US',
+    Global: 'Global',
+  }
+  return m[label] || label
 }
 
-function randomizeBarData() {
-  barData.value.splice(
-    0,
-    barData.value.length,
-    {
+async function fetchBenchmark() {
+  const isAllCountries = norm(globalFilters.selectedCountry).toLowerCase().startsWith('all ')
+  const country = isAllCountries ? 'Global' : mapCountryToCode(globalFilters.selectedCountry)
+  const isAllIndustries = norm(globalFilters.selectedIndustry).toLowerCase().startsWith('all ')
+  const industry = isAllIndustries ? '' : globalFilters.selectedIndustry
+  const isAllDevices = norm(globalFilters.selectedDevice).toLowerCase().startsWith('all ')
+  const device = isAllDevices ? 'all_devices' : mapDevice(globalFilters.selectedDevice)
+
+  try {
+    let q = supabase
+      .from('engagement')
+      .select(
+        'AVG_PAGEVIEWS_PER_SESSION,PAGEVIEWS_P25,PAGEVIEWS_P75,AVG_TIME_SPENT_PER_SESSION,TIME_SPENT_P25,TIME_SPENT_P75,AVG_SCROLL_RATE,SCROLL_RATE_P25,SCROLL_RATE_P75',
+      )
+      .order('ANALYSIS_MONTH', { ascending: false })
+      .limit(1)
+
+    if (country) q = q.eq('COUNTRY_CODE', country)
+    if (device) q = q.eq('DEVICE_ID', device)
+    if (industry) q = q.eq('INDUSTRY', industry)
+
+    const { data, error } = await q
+    if (error) throw error
+
+    const row = data && data.length > 0 ? data[0] : null
+    if (!row) return
+
+    // Chart 1: Pageviews
+    barData.value[0] = {
       label: 'Pageviews per Session',
-      values: [randomFloat(1.8, 2.4), randomFloat(2.8, 3.8), randomFloat(4.2, 5.2)],
-      display: (val: number) => val.toFixed(2),
-    },
-    {
+      values: [
+        Number(row.PAGEVIEWS_P25 ?? 0),
+        Number(row.AVG_PAGEVIEWS_PER_SESSION ?? 0),
+        Number(row.PAGEVIEWS_P75 ?? 0),
+      ],
+      display: (v: number) => v.toFixed(2),
+    }
+
+    // Chart 2: Time per Session (secondes)
+    barData.value[1] = {
       label: 'Time per Session',
-      values: [randomFloat(90, 110), randomFloat(120, 140), randomFloat(160, 180)],
+      values: [
+        Number(row.TIME_SPENT_P25 ?? 0),
+        Number(row.AVG_TIME_SPENT_PER_SESSION ?? 0),
+        Number(row.TIME_SPENT_P75 ?? 0),
+      ],
       display: (val: number) => {
         const total = Math.round(val)
         const minPart = Math.floor(total / 60)
         const secPart = total % 60
         return `${minPart}:${secPart.toString().padStart(2, '0')}`
       },
-    },
-    {
+    }
+
+    // Chart 3: Scroll rate
+    barData.value[2] = {
       label: 'Scroll Rate',
-      values: [randomFloat(55, 60), randomFloat(65, 70), randomFloat(75, 80)],
-      display: (val: number) => val.toFixed(1) + '%',
-    },
-  )
+      values: [
+        Number(row.SCROLL_RATE_P25 ?? 0),
+        Number(row.AVG_SCROLL_RATE ?? 0),
+        Number(row.SCROLL_RATE_P75 ?? 0),
+      ],
+      display: (v: number) => v.toFixed(1) + '%',
+    }
+  } catch (e) {
+    console.error('fetchBenchmark engagement error:', e)
+  }
 }
 
-// Expose la fonction pour que le parent puisse l'appeler
+onMounted(fetchBenchmark)
+watch(
+  () => [
+    globalFilters.selectedCountry,
+    globalFilters.selectedIndustry,
+    globalFilters.selectedDevice,
+    globalFilters.selectedMonth, // on prend la plus récente
+  ],
+  fetchBenchmark,
+)
+
+// Expose pour MAJ manuelle si besoin
 defineExpose({
-  randomizeBarData,
+  updateBarData: fetchBenchmark,
+  randomizeBarData: fetchBenchmark,
 })
 </script>

@@ -1,12 +1,11 @@
 <template>
   <section class="bg-white relative z-50">
     <div class="max-w-7xl mx-auto px-4 pt-4 pb-1">
-      <h2 class="font-newedge text-4xl text-center mb-2" style="color: #3737a2 !important">
+      <h2 class="font-newedge text-4xl text-center mb-2" :style="{ color: pageConfig.titleColor }">
         {{ dynamicTitle }}
       </h2>
       <p class="text-center text-gray-800 mb-8">
-        Data covers same-site activity from Q4 2023 to Q4 2024. Scroll down to the methodology
-        section to see how we gathered this data.
+        Conversion benchmarks across markets, industries, devices, and audiences.
       </p>
       <div class="flex justify-center items-start gap-8 mb-8">
         <!-- Labels verticaux -->
@@ -18,6 +17,7 @@
             <span class="font-newedge text-3xl text-[#000000] rotate-[-90deg]">MoM</span>
           </div>
         </div>
+
         <!-- Blocs metrics -->
         <div class="flex flex-col gap-8">
           <!-- Ligne YoY -->
@@ -25,8 +25,8 @@
             <div
               v-for="(metric, index) in pageConfig.yoyMetrics"
               :key="`yoy-${index}`"
-              class="group border border-[#000000] p-4 flex flex-col justify-center min-w-[200px] min-h-[100px] bg-white relative hover:border-[#3737A2]/40 hover:shadow-sm transition cursor-pointer"
-              :class="{ 'rounded-3xl': metric.isRounded }"
+              class="group border border-[#000000] p-4 flex flex-col justify-center min-w-[200px] min-h-[100px] bg-white relative hover:border-[#41474D]/40 hover:shadow-sm transition cursor-pointer"
+              :class="{ 'rounded-2xl': metric.isRounded }"
             >
               <div
                 class="text-2xl font-newedge mb-2"
@@ -35,6 +35,7 @@
                 {{ getMetricValue('yoy', index) }}
               </div>
               <div class="font-medium text-sm mb-1">{{ metric.label }}</div>
+              <!-- Tooltip au hover -->
               <div
                 class="pointer-events-none absolute left-0 right-0 top-full mt-2 bg-[#111827] text-white text-xs px-3 py-2 rounded shadow-md opacity-0 group-hover:opacity-100 transition whitespace-normal break-words z-50 text-center"
               >
@@ -44,7 +45,7 @@
               <div class="absolute top-6 right-6">
                 <svg
                   v-if="getNumericValue('yoy', index) > 0"
-                  class="w-4 h-4 text-red-600"
+                  class="w-4 h-4 text-green-600"
                   fill="none"
                   stroke="currentColor"
                   viewBox="0 0 24 24"
@@ -58,7 +59,7 @@
                 </svg>
                 <svg
                   v-else-if="getNumericValue('yoy', index) < 0"
-                  class="w-4 h-4 text-green-600"
+                  class="w-4 h-4 text-red-600"
                   fill="none"
                   stroke="currentColor"
                   viewBox="0 0 24 24"
@@ -79,7 +80,7 @@
             <div
               v-for="(metric, index) in pageConfig.momMetrics"
               :key="`mom-${index}`"
-              class="group border border-[#000000] p-4 flex flex-col justify-center min-w-[200px] min-h-[100px] bg-white relative hover:border-[#3737A2]/40 hover:shadow-sm transition cursor-pointer"
+              class="group border border-[#000000] p-4 flex flex-col justify-center min-w-[200px] min-h-[100px] bg-white relative hover:border-[#41474D]/40 hover:shadow-sm transition cursor-pointer"
               :class="{ 'rounded-2xl': metric.isRounded }"
             >
               <div
@@ -89,6 +90,7 @@
                 {{ getMetricValue('mom', index) }}
               </div>
               <div class="font-medium text-sm mb-1">{{ metric.label }}</div>
+              <!-- Tooltip au hover -->
               <div
                 class="pointer-events-none absolute left-0 right-0 top-full mt-2 bg-[#111827] text-white text-xs px-3 py-2 rounded shadow-md opacity-0 group-hover:opacity-100 transition whitespace-normal break-words z-50 text-center"
               >
@@ -98,7 +100,7 @@
               <div class="absolute top-6 right-6">
                 <svg
                   v-if="getNumericValue('mom', index) > 0"
-                  class="w-4 h-4 text-red-600"
+                  class="w-4 h-4 text-green-600"
                   fill="none"
                   stroke="currentColor"
                   viewBox="0 0 24 24"
@@ -112,7 +114,7 @@
                 </svg>
                 <svg
                   v-else-if="getNumericValue('mom', index) < 0"
-                  class="w-4 h-4 text-green-600"
+                  class="w-4 h-4 text-red-600"
                   fill="none"
                   stroke="currentColor"
                   viewBox="0 0 24 24"
@@ -137,43 +139,99 @@
 import { ref, computed, onMounted, watch } from 'vue'
 import { pageConfigs } from '@/config/pageConfig'
 import { useGlobalFiltersStore } from '@/stores/globalFilters'
-import { useFrustrationMetrics } from '@/composables/useFrustrationMetrics'
-
-interface Props {
-  pageType: string
-  frustrationStore?: unknown
-}
-
-defineProps<Props>()
+import { useSupabaseData } from '@/composables/useSupabaseData'
 
 const globalFilters = useGlobalFiltersStore()
-const { yoyChanges, momChanges, getMetrics } = useFrustrationMetrics()
+const { fetchTableData, getFilteredDataFor } = useSupabaseData()
 
-const pageConfig = computed(() => pageConfigs.frustration)
+type Row = Record<string, unknown>
+
+const pageConfig = computed(() => pageConfigs.conversion)
 
 const selectedMonth = computed(() => globalFilters.selectedMonth)
 
 const dynamicTitle = computed(() => {
   const month = selectedMonth.value
   if (!month || month === 'All Months') {
-    return 'How has Frustration evolved across sectors this year?'
+    return 'How is your conversion rate looking this month?'
   } else {
-    return `How has Frustration evolved in ${month}?`
+    return `How has Conversion evolved in ${month}?`
   }
 })
 
-// Construction des valeurs réelles depuis la base (synchrones pour le rendu)
+// Valeurs réelles à afficher (yoy/mom) dans l'ordre:
+// [Conversion rate, Cart Abandonment rate, Average Order Value, Revenue Per Session]
 const realValues = ref<{ yoy: number[]; mom: number[] }>({ yoy: [0, 0, 0, 0], mom: [0, 0, 0, 0] })
 
-async function loadFrustrationMetrics() {
-  const m = await getMetrics()
-  realValues.value = {
-    yoy: [m.frustrationScore.yoy, m.loadTimeFrustration.yoy, m.jsErrorRate.yoy, m.bounceRate.yoy],
-    mom: [m.frustrationScore.mom, m.loadTimeFrustration.mom, m.jsErrorRate.mom, m.bounceRate.mom],
-  }
+const toNum = (v: unknown): number => {
+  if (v === null || v === undefined) return 0
+  const s = String(v).replace('%', '').replace(',', '.').trim()
+  const n = parseFloat(s)
+  return isNaN(n) ? 0 : n
 }
 
-onMounted(loadFrustrationMetrics)
+const loadConversionMetrics = async () => {
+  // Charger uniquement la table conversion (source unique)
+  await fetchTableData('conversion')
+
+  const isAll = (v: unknown) =>
+    v === undefined || v === null
+      ? true
+      : String(v).toLowerCase().includes('all') || String(v).toLowerCase().includes('tous')
+
+  const monthFilter = isAll(globalFilters.selectedMonth) ? undefined : globalFilters.selectedMonth
+  const countryFilter = isAll(globalFilters.selectedCountry)
+    ? undefined
+    : globalFilters.selectedCountry
+  const industryFilter = isAll(globalFilters.selectedIndustry)
+    ? undefined
+    : globalFilters.selectedIndustry
+  const deviceFilter = isAll(globalFilters.selectedDevice)
+    ? undefined
+    : globalFilters.selectedDevice
+
+  const filters = {
+    country: countryFilter,
+    industry: industryFilter,
+    device: deviceFilter,
+    analysis_month: monthFilter,
+  }
+
+  const rows = getFilteredDataFor('conversion', filters).value as unknown as Row[]
+  if (!rows || rows.length === 0) {
+    realValues.value = { yoy: [0, 0, 0, 0], mom: [0, 0, 0, 0] }
+    return
+  }
+
+  // Choisir la ligne la plus récente par ANALYSIS_MONTH
+  const normDate = (d: unknown) => new Date(String(d))
+  const latest = [...rows]
+    .sort((a: Row, b: Row) => {
+      const am = (a['ANALYSIS_MONTH'] ?? a['analysis_month']) as unknown
+      const bm = (b['ANALYSIS_MONTH'] ?? b['analysis_month']) as unknown
+      return normDate(am).getTime() - normDate(bm).getTime()
+    })
+    .pop() as Row
+
+  const get = (k: string) => latest[k]
+  const yoy = [
+    toNum(get('CVR_yoy_change') ?? get('CVR_YOY_CHANGE') ?? get('CONVERSION_RATE_YOY_CHANGE')),
+    toNum(get('Cart_Abandonment_rate_yoy_change') ?? get('CART_ABANDONMENT_RATE_YOY_CHANGE') ?? 0),
+    toNum(get('AOV_yoy_change') ?? get('AOV_YOY_CHANGE') ?? get('AVERAGE_ORDER_VALUE_YOY_CHANGE')),
+    toNum(get('RPV_yoy_change') ?? get('RPV_YOY_CHANGE') ?? 0),
+  ]
+
+  const mom = [
+    toNum(get('CVR_mom_change') ?? get('CVR_MOM_CHANGE') ?? get('CONVERSION_RATE_MOM_CHANGE')),
+    toNum(get('Cart_Abandonment_rate_mom_change') ?? get('CART_ABANDONMENT_RATE_MOM_CHANGE') ?? 0),
+    toNum(get('AOV_mom_change') ?? get('AOV_MOM_CHANGE') ?? get('AVERAGE_ORDER_VALUE_MOM_CHANGE')),
+    toNum(get('RPV_mom_change') ?? get('RPV_MOM_CHANGE') ?? 0),
+  ]
+
+  realValues.value = { yoy, mom }
+}
+
+onMounted(loadConversionMetrics)
 watch(
   () => [
     globalFilters.selectedCountry,
@@ -181,69 +239,26 @@ watch(
     globalFilters.selectedDevice,
     globalFilters.selectedMonth,
   ],
-  () => loadFrustrationMetrics(),
+  () => loadConversionMetrics(),
 )
 
-// Fonction pour formater les valeurs selon les spécifications du data analyste
-const formatValue = (value: number, index: number): string => {
-  // Pour Load Time Frustration (index 1) selon formule:
-  // load_time_frustration_rate = sum(NB_SESSIONS_WITH_LOADING_TIME) / sum(nb_sessions) * 100
-  // Format: changement en minutes sans décimales (ex: "0min6" ou "1min6")
-  if (index === 1) {
-    const sign = value >= 0 ? '+' : ''
-    const absValue = Math.abs(value)
-    const minutes = Math.floor(absValue / 60)
-    const seconds = Math.floor(absValue % 60)
-    return `${sign}${minutes}min${seconds}`
-  }
-
-  // For Frustration Score (index 0) selon specs: format percentage
-  // frustration_score_yoy_change et mom_change sont des pourcentages de changement
-  if (index === 0) {
-    const sign = value >= 0 ? '+' : ''
-    return `${sign}${value.toFixed(1)}%`
-  }
-
-  // Pour JS Error Rate et Bounce Rate - pourcentages avec signe
+const formatValue = (value: number): string => {
   const sign = value >= 0 ? '+' : ''
-  return `${sign}${value.toFixed(1)}%`
+  return `${sign}${value}%`
 }
 
-// Fonction pour obtenir la valeur à afficher
 const getMetricValue = (period: 'yoy' | 'mom', index: number): string => {
-  // Utiliser les vraies valeurs si disponibles
-  if (realValues.value) {
-    const realValue = period === 'yoy' ? realValues.value.yoy[index] : realValues.value.mom[index]
-    return formatValue(realValue, index)
-  }
-
-  // Sinon, valeur statique du config selon les spécifications
-  const metric =
-    period === 'yoy' ? pageConfig.value.yoyMetrics[index] : pageConfig.value.momMetrics[index]
-  return metric.value
+  const v = period === 'yoy' ? realValues.value.yoy[index] : realValues.value.mom[index]
+  return formatValue(v)
 }
 
-// Fonction pour obtenir la valeur numérique pour déterminer la direction de la flèche
 const getNumericValue = (period: 'yoy' | 'mom', index: number): number => {
-  // Utiliser les vraies valeurs si disponibles
-  if (realValues.value) {
-    return period === 'yoy' ? realValues.value.yoy[index] : realValues.value.mom[index]
-  }
-
-  // Pour les valeurs statiques, extraire le nombre de la chaîne
-  const metric =
-    period === 'yoy' ? pageConfig.value.yoyMetrics[index] : pageConfig.value.momMetrics[index]
-  const numericValue = parseFloat(metric.value.replace(/[%,min]/g, ''))
-  return isNaN(numericValue) ? 0 : numericValue
+  return period === 'yoy' ? realValues.value.yoy[index] : realValues.value.mom[index]
 }
 
-// Fonction pour déterminer la couleur selon les spécifications
 const getColorClass = (value: number): string => {
-  // Pour les changements YoY et MoM
-  if (value > 0) return 'text-red-600' // Augmentation = rouge (mauvais pour frustration)
-  if (value < 0) return 'text-green-600' // Diminution = vert (bon pour frustration)
-  return 'text-gray-600' // Neutre
+  if (value > 0) return 'text-green-600'
+  if (value < 0) return 'text-red-600'
+  return 'text-gray-600'
 }
-
-// Plus besoin de watchers manuels: le composable écoute les filtres via useSupabaseData
 </script>

@@ -1,80 +1,128 @@
-import { computed } from 'vue'
-import { useSupabaseData, type TrafficData } from './useSupabaseData'
+import { ref, computed, onMounted, watch } from 'vue'
 import { useGlobalFiltersStore } from '../stores/globalFilters'
+import { supabase } from '../lib/supabase'
 
 export function useEngagementMetrics() {
-  const { data, getFilteredData } = useSupabaseData()
   const globalFilters = useGlobalFiltersStore()
+  const rowRef = ref<any | null>(null)
 
-  console.log(
-    'useEngagementMetrics - Table engagement pas encore disponible, utilisation de données simulées',
+  const mapDevice = (label: string): string => {
+    const l = label.toLowerCase()
+    if (l === 'desktop') return '1'
+    if (l === 'mobile') return '2'
+    return label
+  }
+
+  const mapCountryToCode = (label: string): string => {
+    const m: Record<string, string> = {
+      Australia: 'AU',
+      AU: 'AU',
+      Canada: 'CA',
+      CA: 'CA',
+      Germany: 'DE',
+      DE: 'DE',
+      France: 'FR',
+      FR: 'FR',
+      'United Kingdom': 'GB',
+      UK: 'GB',
+      GB: 'GB',
+      Italy: 'IT',
+      IT: 'IT',
+      Japan: 'JP',
+      JP: 'JP',
+      'United States': 'US',
+      USA: 'US',
+      US: 'US',
+      Global: 'Global',
+    }
+    return m[label] || label
+  }
+
+  const norm = (v: unknown) => (v === undefined || v === null ? '' : String(v).trim())
+
+  const loadRow = async () => {
+    const isAllCountries = norm(globalFilters.selectedCountry).toLowerCase().startsWith('all ')
+    const targetCountry = isAllCountries
+      ? 'Global'
+      : mapCountryToCode(globalFilters.selectedCountry)
+    const isAllIndustries = norm(globalFilters.selectedIndustry).toLowerCase().startsWith('all ')
+    const targetIndustry = isAllIndustries ? '' : globalFilters.selectedIndustry
+    const isAllDevices = norm(globalFilters.selectedDevice).toLowerCase().startsWith('all ')
+    const targetDevice = isAllDevices ? 'all_devices' : mapDevice(globalFilters.selectedDevice)
+    const isAllMonths = norm(globalFilters.selectedMonth).toLowerCase().startsWith('all ')
+    const targetMonth = isAllMonths ? '' : globalFilters.selectedMonth
+
+    try {
+      // Requête primaire
+      let q = supabase
+        .from('engagement')
+        .select('*')
+        .order('ANALYSIS_MONTH', { ascending: false })
+        .limit(1)
+      if (targetCountry) q = q.eq('COUNTRY_CODE', targetCountry)
+      if (targetDevice) q = q.eq('DEVICE_ID', targetDevice)
+      if (targetIndustry) q = q.eq('INDUSTRY', targetIndustry)
+      if (targetMonth) q = q.eq('ANALYSIS_MONTH', targetMonth)
+      let { data, error } = await q
+      if (error) throw error
+      if (data && data.length > 0) {
+        rowRef.value = data[0]
+        return
+      }
+
+      // Fallback 1: pays+device uniquement
+      ;({ data, error } = await supabase
+        .from('engagement')
+        .select('*')
+        .eq('COUNTRY_CODE', targetCountry || 'Global')
+        .eq('DEVICE_ID', targetDevice || 'all_devices')
+        .order('ANALYSIS_MONTH', { ascending: false })
+        .limit(1))
+      if (error) throw error
+      if (data && data.length > 0) {
+        rowRef.value = data[0]
+        return
+      }
+
+      // Fallback 2: Global + all_devices
+      ;({ data, error } = await supabase
+        .from('engagement')
+        .select('*')
+        .eq('COUNTRY_CODE', 'Global')
+        .eq('DEVICE_ID', 'all_devices')
+        .order('ANALYSIS_MONTH', { ascending: false })
+        .limit(1))
+      if (error) throw error
+      rowRef.value = data && data.length > 0 ? data[0] : null
+    } catch (e) {
+      console.error('loadRow engagement error:', e)
+      rowRef.value = null
+    }
+  }
+
+  onMounted(loadRow)
+  watch(
+    () => [
+      globalFilters.selectedCountry,
+      globalFilters.selectedIndustry,
+      globalFilters.selectedDevice,
+      globalFilters.selectedMonth,
+    ],
+    () => loadRow(),
+    { immediate: true },
   )
 
-  // Données filtrées selon les filtres globaux
-  const filteredData = computed(() => {
-    console.log(
-      'useEngagementMetrics - data.value (avant filtrage):',
-      data.value.length,
-      'éléments',
-    )
-    console.log('useEngagementMetrics - Première ligne de data.value:', data.value[0])
-
-    // Construire les filtres - "All" signifie pas de filtre (undefined)
-    const filters: {
-      country?: string
-      industry?: string
-      device?: string
-      analysis_month?: string
-    } = {}
-
-    // Ajouter seulement les filtres actifs (pas "All")
-    if (globalFilters.selectedCountry !== 'All countries') {
-      filters.country = globalFilters.selectedCountry
-    }
-    if (globalFilters.selectedIndustry !== 'All industries') {
-      filters.industry = globalFilters.selectedIndustry
-    }
-    if (globalFilters.selectedDevice !== 'All devices') {
-      // Mapper le label UI vers la valeur DB (codes)
-      const mapDevice = (label: string): string => {
-        const l = label.toLowerCase()
-        if (l === 'desktop') return '1'
-        if (l === 'mobile') return '2'
-        return label
-      }
-      filters.device = mapDevice(globalFilters.selectedDevice)
-    } else {
-      // All Devices sélectionné → cibler explicitement les lignes 'all_devices'
-      filters.device = 'all_devices'
-    }
-    if (globalFilters.selectedMonth !== 'All months') {
-      filters.analysis_month = globalFilters.selectedMonth
-    }
-
-    console.log('useEngagementMetrics - Filtres globaux:', {
-      selectedCountry: globalFilters.selectedCountry,
-      selectedIndustry: globalFilters.selectedIndustry,
-      selectedDevice: globalFilters.selectedDevice,
-      selectedMonth: globalFilters.selectedMonth,
-    })
-    console.log('useEngagementMetrics - Filtres appliqués:', filters)
-
-    const filtered = getFilteredData(filters)
-    console.log('useEngagementMetrics - Données filtrées:', filtered.length, 'éléments')
-    if (filtered.length > 0) {
-      console.log('useEngagementMetrics - Première ligne filtrée:', filtered[0])
-    }
-
-    return filtered
-  })
-
-  // Métriques d'engagement calculées depuis les données filtrées
+  // Métriques d'engagement calculées depuis la ligne sélectionnée
   const engagementMetrics = computed(() => {
-    console.log('useEngagementMetrics - engagementMetrics recalculé')
-    console.log('useEngagementMetrics - filteredData.value.length:', filteredData.value.length)
-
-    if (!filteredData.value.length) {
-      console.log('useEngagementMetrics - Pas de données filtrées')
+    if (!rowRef.value) {
+      console.log('useEngagementMetrics - Pas de données filtrées', {
+        selectedCountry: globalFilters.selectedCountry,
+        mappedCountry: mapCountryToCode(globalFilters.selectedCountry),
+        selectedDevice: globalFilters.selectedDevice,
+        mappedDevice: mapDevice(globalFilters.selectedDevice),
+        selectedIndustry: globalFilters.selectedIndustry,
+        selectedMonth: globalFilters.selectedMonth,
+      })
       return {
         pageviewsPerSession: { yoy: 0, mom: 0, value: 0 },
         newVisitorPageviews: { yoy: 0, mom: 0, value: 0 },
@@ -82,52 +130,34 @@ export function useEngagementMetrics() {
         scrollRate: { yoy: 0, mom: 0, value: 0 },
       }
     }
-
-    // Données simulées pour engagement (en attendant la table engagement)
-    // Basées sur les données traffic existantes et des valeurs réalistes
-
-    // Calculer des valeurs de base basées sur les filtres
-    const baseValue =
-      filteredData.value.length > 0
-        ? filteredData.value.reduce(
-            (sum: number, item: TrafficData) => sum + (Number(item.yoy_change) || 0),
-            0,
-          ) / filteredData.value.length
-        : 0
+    const row = rowRef.value
+    console.log('useEngagementMetrics - Ligne sélectionnée:', row)
 
     const pageviewsPerSession = {
-      yoy: Math.round((baseValue * 0.3 + Math.random() * 10 - 5) * 10) / 10, // -10.5% to +13.5%
-      mom: Math.round((Math.random() * 20 - 10) * 10) / 10, // -10% to +10%
-      value: Math.round((2.5 + Math.random() * 1.5) * 10) / 10, // 2.5-4.0 pages/session
+      value: Number(row['AVG_PAGEVIEWS_PER_SESSION'] ?? 0),
+      yoy: Number(row['PAGEVIEWS_YOY_CHANGE'] ?? 0),
+      mom: Number(row['PAGEVIEWS_MOM_CHANGE'] ?? 0),
     }
 
     const newVisitorPageviews = {
-      yoy: Math.round((baseValue * 0.8 + Math.random() * 15 - 7.5) * 10) / 10, // Basé sur les données existantes
-      mom: Math.round((Math.random() * 25 - 12.5) * 10) / 10, // -12.5% to +12.5%
-      value: Math.round((3.2 + Math.random() * 1.0) * 10) / 10, // 3.2-4.2 pages/session
+      value: Number(row['AVG_NEW_VISITOR_PAGEVIEWS'] ?? 0),
+      yoy: Number(row['NEW_VISITOR_PAGEVIEWS_YOY_CHANGE'] ?? 0),
+      mom: Number(row['NEW_VISITOR_PAGEVIEWS_MOM_CHANGE'] ?? 0),
     }
 
     const timePerSession = {
-      yoy: Math.round((Math.random() * 16 - 8) * 10) / 10, // -8% to +8%
-      mom: Math.round((Math.random() * 8 - 4) * 10) / 10, // -4% to +4%
-      value: Math.round(120 + Math.random() * 60), // 120-180 secondes (2-3 minutes)
+      value: Number(row['AVG_TIME_SPENT_PER_SESSION'] ?? 0),
+      yoy: Number(row['TIME_SPENT_YOY_CHANGE'] ?? 0),
+      mom: Number(row['TIME_SPENT_MOM_CHANGE'] ?? 0),
     }
 
     const scrollRate = {
-      yoy: Math.round((Math.random() * 20 - 10) * 10) / 10, // -10% to +10%
-      mom: Math.round((Math.random() * 12 - 6) * 10) / 10, // -6% to +6%
-      value: Math.round((65 + Math.random() * 15) * 10) / 10, // 65-80%
+      value: Number(row['AVG_SCROLL_RATE'] ?? 0),
+      yoy: Number(row['SCROLL_RATE_YOY_CHANGE'] ?? 0),
+      mom: Number(row['SCROLL_RATE_MOM_CHANGE'] ?? 0),
     }
 
-    const result = {
-      pageviewsPerSession,
-      newVisitorPageviews,
-      timePerSession,
-      scrollRate,
-    }
-
-    console.log('✅ useEngagementMetrics - Métriques calculées:', result)
-    return result
+    return { pageviewsPerSession, newVisitorPageviews, timePerSession, scrollRate }
   })
 
   // Valeurs pour YoY et MoM (formatées pour l'affichage)
@@ -152,15 +182,11 @@ export function useEngagementMetrics() {
   })
 
   // États de chargement et d'erreur
-  const isLoading = computed(() => !data.value || data.value.length === 0)
-  const error = computed(() => null) // TODO: Implémenter la gestion d'erreur si nécessaire
 
   return {
-    filteredData,
+    filteredData: computed(() => (rowRef.value ? [rowRef.value] : [])),
     engagementMetrics,
     yoyChanges,
     momChanges,
-    isLoading,
-    error,
   }
 }

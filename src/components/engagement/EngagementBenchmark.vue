@@ -45,12 +45,19 @@ import { supabase } from '@/lib/supabase'
 import MiniBarChart from '@/components/charts/MiniBarChart.vue'
 
 const globalFilters = useGlobalFiltersStore()
-const labelColors = ['#C1E3B1', '#2E614F', '#6D9A7A']
-const barData = ref([
-  { label: 'Pageviews per Session', values: [0, 0, 0], display: (v: number) => v.toFixed(2) },
+type Triple = [number, number, number]
+type BarItem = { label: string; values: Triple; display: (v: number) => string }
+
+const labelColors: [string, string, string] = ['#C1E3B1', '#2E614F', '#6D9A7A']
+const barData = ref<BarItem[]>([
+  {
+    label: 'Pageviews per Session',
+    values: [0, 0, 0] as Triple,
+    display: (v: number) => v.toFixed(2),
+  },
   {
     label: 'Time per Session',
-    values: [0, 0, 0],
+    values: [0, 0, 0] as Triple,
     display: (val: number) => {
       const total = Math.round(val)
       const minPart = Math.floor(total / 60)
@@ -58,7 +65,7 @@ const barData = ref([
       return `${minPart}:${secPart.toString().padStart(2, '0')}`
     },
   },
-  { label: 'Scroll Rate', values: [0, 0, 0], display: (v: number) => v.toFixed(1) + '%' },
+  { label: 'Scroll Rate', values: [0, 0, 0] as Triple, display: (v: number) => v.toFixed(1) + '%' },
 ])
 
 const norm = (v: unknown) => (v === undefined || v === null ? '' : String(v).trim())
@@ -127,7 +134,7 @@ async function fetchBenchmark() {
         Number(row.PAGEVIEWS_P25 ?? 0),
         Number(row.AVG_PAGEVIEWS_PER_SESSION ?? 0),
         Number(row.PAGEVIEWS_P75 ?? 0),
-      ],
+      ] as Triple,
       display: (v: number) => v.toFixed(2),
     }
 
@@ -138,7 +145,7 @@ async function fetchBenchmark() {
         Number(row.TIME_SPENT_P25 ?? 0),
         Number(row.AVG_TIME_SPENT_PER_SESSION ?? 0),
         Number(row.TIME_SPENT_P75 ?? 0),
-      ],
+      ] as Triple,
       display: (val: number) => {
         const total = Math.round(val)
         const minPart = Math.floor(total / 60)
@@ -154,7 +161,7 @@ async function fetchBenchmark() {
         Number(row.SCROLL_RATE_P25 ?? 0),
         Number(row.AVG_SCROLL_RATE ?? 0),
         Number(row.SCROLL_RATE_P75 ?? 0),
-      ],
+      ] as Triple,
       display: (v: number) => v.toFixed(1) + '%',
     }
   } catch (e) {

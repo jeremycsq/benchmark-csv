@@ -14,12 +14,12 @@
         <!-- Desktop -->
         <div class="space-y-2">
           <div class="flex justify-between text-sm text-[#FFF6F6]">
-            <span class="text-xs text-[#FFB6B5]">Desktop</span>
-            <span class="text-xs text-[#8D0A38]">{{ deviceDistribution.desktop }}%</span>
+            <span class="text-xs text-[#000]">Desktop</span>
+            <span class="text-xs text-[#000]">{{ deviceDistribution.desktop }}%</span>
           </div>
-          <div class="w-full bg-[#FFF6F6] rounded-full h-5">
+          <div class="w-full bg-[#F7F9F9] rounded-l h-6">
             <div
-              class="bg-[#8D0A38] h-5 rounded-full transition-all duration-500"
+              class="bg-[#8D0A38] h-6 rounded-l transition-all duration-500"
               :style="{ width: deviceDistribution.desktop + '%' }"
             ></div>
           </div>
@@ -28,12 +28,12 @@
         <!-- Mobile -->
         <div class="space-y-2">
           <div class="flex justify-between text-sm text-[#FFF6F6]">
-            <span class="text-xs text-[#FFB6B5]">Mobile</span>
-            <span class="text-xs text-[#8D0A38]">{{ deviceDistribution.mobile }}%</span>
+            <span class="text-xs text-[#000]">Mobile</span>
+            <span class="text-xs text-[#000]">{{ deviceDistribution.mobile }}%</span>
           </div>
-          <div class="w-full bg-[#FFF6F6] rounded-full h-5">
+          <div class="w-full bg-[#F7F9F9] rounded-l h-6">
             <div
-              class="bg-[#FFB6B5] h-5 rounded-full transition-all duration-500"
+              class="bg-[#FFB6B5] h-6 rounded-l transition-all duration-500"
               :style="{ width: deviceDistribution.mobile + '%' }"
             ></div>
           </div>

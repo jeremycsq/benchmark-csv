@@ -29,11 +29,13 @@
               :class="{ 'rounded-3xl': metric.isRounded }"
             >
               <div
+                v-if="!isLoading"
                 class="text-2xl font-newedge mb-2"
                 :class="getColorClass(getNumericValue('yoy', index))"
               >
                 {{ getMetricValue('yoy', index) }}
               </div>
+              <div v-else class="h-6 w-16 bg-gray-200 rounded animate-pulse mb-2"></div>
               <div class="font-medium text-sm mb-1">{{ metric.label }}</div>
               <div
                 class="pointer-events-none absolute left-0 right-0 top-full mt-2 bg-[#111827] text-white text-xs px-3 py-2 rounded shadow-md opacity-0 group-hover:opacity-100 transition whitespace-normal break-words z-50 text-center"
@@ -41,7 +43,7 @@
                 {{ metric.description }}
               </div>
               <!-- Icône de flèche -->
-              <div class="absolute top-6 right-6">
+              <div v-if="!isLoading" class="absolute top-6 right-6">
                 <svg
                   v-if="getNumericValue('yoy', index) > 0"
                   class="w-4 h-4 text-red-600"
@@ -83,11 +85,13 @@
               :class="{ 'rounded-2xl': metric.isRounded }"
             >
               <div
+                v-if="!isLoading"
                 class="text-2xl font-newedge mb-2"
                 :class="getColorClass(getNumericValue('mom', index))"
               >
                 {{ getMetricValue('mom', index) }}
               </div>
+              <div v-else class="h-6 w-16 bg-gray-200 rounded animate-pulse mb-2"></div>
               <div class="font-medium text-sm mb-1">{{ metric.label }}</div>
               <div
                 class="pointer-events-none absolute left-0 right-0 top-full mt-2 bg-[#111827] text-white text-xs px-3 py-2 rounded shadow-md opacity-0 group-hover:opacity-100 transition whitespace-normal break-words z-50 text-center"
@@ -95,7 +99,7 @@
                 {{ metric.description }}
               </div>
               <!-- Icône de flèche -->
-              <div class="absolute top-6 right-6">
+              <div v-if="!isLoading" class="absolute top-6 right-6">
                 <svg
                   v-if="getNumericValue('mom', index) > 0"
                   class="w-4 h-4 text-red-600"
@@ -148,6 +152,7 @@ defineProps<Props>()
 
 const globalFilters = useGlobalFiltersStore()
 const { yoyChanges, momChanges, getMetrics } = useFrustrationMetrics()
+const isLoading = ref(true)
 
 const pageConfig = computed(() => pageConfigs.frustration)
 
@@ -171,6 +176,7 @@ async function loadFrustrationMetrics() {
     yoy: [m.frustrationScore.yoy, m.loadTimeFrustration.yoy, m.jsErrorRate.yoy, m.bounceRate.yoy],
     mom: [m.frustrationScore.mom, m.loadTimeFrustration.mom, m.jsErrorRate.mom, m.bounceRate.mom],
   }
+  isLoading.value = false
 }
 
 onMounted(loadFrustrationMetrics)

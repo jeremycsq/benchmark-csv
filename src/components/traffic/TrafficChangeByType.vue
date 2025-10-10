@@ -15,17 +15,17 @@
         <div class="space-y-4">
           <div v-for="(item, index) in deviceChanges" :key="`device-${index}`" class="space-y-2">
             <div class="flex justify-between text-sm text-[#FFF6F6]">
-              <span class="text-xs text-[#FFB6B5]">{{ item.label }}</span>
-              <span class="text-xs text-[#8D0A38]">
+              <span class="text-xs text-[#000]">{{ item.label }}</span>
+              <span class="text-xs text-[#000]">
                 {{ item.value >= 0 ? '+' : '' }}{{ item.value }}%
               </span>
             </div>
-            <div class="relative h-6 bg-[#FFF6F6] rounded-full overflow-hidden">
+            <div class="relative h-6 bg-[#F7F9F9] rounded overflow-hidden">
               <div
                 v-if="item.value < 0"
                 :class="[
                   'bg-[#8D0A38] h-6 flex items-center justify-center text-white text-xs px-4',
-                  Math.abs(item.value) * 5 >= 50 ? 'rounded-full' : 'rounded-l-full',
+                  Math.abs(item.value) * 5 >= 50 ? '' : 'rounded',
                 ]"
                 :style="{ width: Math.abs(item.value) * 5 + '%' }"
               >
@@ -50,17 +50,17 @@
             class="space-y-2"
           >
             <div class="flex justify-between text-sm text-[#FFF6F6]">
-              <span class="text-xs text-[#FFB6B5]">{{ item.label }}</span>
-              <span class="text-xs text-[#8D0A38]">
+              <span class="text-xs text-[#000]">{{ item.label }}</span>
+              <span class="text-xs text-[#000]">
                 {{ item.value >= 0 ? '+' : '' }}{{ item.value }}%
               </span>
             </div>
-            <div class="relative h-6 bg-[#FFF6F6] rounded-full overflow-hidden">
+            <div class="relative h-6 bg-[#F7F9F9] overflow-hidden">
               <div
                 v-if="item.value < 0"
                 :class="[
                   'bg-[#8D0A38] h-6 flex items-center justify-center text-white text-xs px-4',
-                  Math.abs(item.value) * 5 >= 50 ? 'rounded-full' : 'rounded-l-full',
+                  Math.abs(item.value) * 5 >= 50 ? 'rounded' : 'rounded',
                 ]"
                 :style="{ width: Math.abs(item.value) * 5 + '%' }"
               >
@@ -68,7 +68,7 @@
               </div>
               <div
                 v-if="item.value > 0"
-                class="bg-[#FFB6B5] rounded-r-full h-6 flex items-center justify-center text-white text-xs px-4"
+                class="bg-[#FFB6B5] rounded-l h-6 flex items-center justify-center text-[#8D0A38] text-xs px-4"
                 :style="{ width: item.value * 5 + '%' }"
               >
                 +{{ item.value }}%

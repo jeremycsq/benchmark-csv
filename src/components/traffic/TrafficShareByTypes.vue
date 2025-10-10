@@ -22,8 +22,8 @@
         <!-- Device Distribution - Barre empilée -->
         <div class="space-y-3">
           <div class="flex justify-between text-sm text-[#FFF6F6]">
-            <span class="text-xs text-[#FFB6B5]">Mobile</span>
-            <span class="text-xs text-[#FFB6B5]">Desktop</span>
+            <span class="text-xs text-[#000]">Mobile</span>
+            <span class="text-xs text-[#000]">Desktop</span>
           </div>
           <div class="relative w-full h-7 bg-[#FFF6F6] rounded">
             <!-- Mobile (vert clair) -->
@@ -33,9 +33,9 @@
             >
               <span v-if="deviceDistribution.mobile > 10">{{ deviceDistribution.mobile }}%</span>
             </div>
-            <!-- Desktop (vert foncé) -->
+
             <div
-              class="absolute right-0 top-0 h-full bg-[#FFB6B5] rounded-r flex items-center justify-end pr-6 text-white font-semibold text-xs tracking-wide"
+              class="absolute right-0 top-0 h-full bg-[#FFB6B5] rounded-r flex items-center justify-end pr-6 text-[#8D0A38] font-semibold text-xs tracking-wide"
               :style="{ width: deviceDistribution.desktop + '%' }"
             >
               <span v-if="deviceDistribution.desktop > 10">{{ deviceDistribution.desktop }}%</span>
@@ -46,11 +46,10 @@
         <!-- Visitor Type - Barre empilée -->
         <div class="space-y-3">
           <div class="flex justify-between text-sm text-[#FFF6F6]">
-            <span class="text-xs text-[#FFB6B5]">New</span>
-            <span class="text-xs text-[#FFB6B5]">Returning</span>
+            <span class="text-xs text-[#000]">New</span>
+            <span class="text-xs text-[#000]">Returning</span>
           </div>
           <div class="relative w-full h-7 bg-[#FFF6F6] rounded">
-            <!-- New (vert clair) -->
             <div
               class="absolute left-0 top-0 h-full bg-[#8D0A38] rounded-l flex items-center justify-start pl-6 text-white font-semibold text-xs tracking-wide"
               :style="{ width: visitorType.new + '%' }"
@@ -59,7 +58,7 @@
             </div>
             <!-- Returning (vert foncé) -->
             <div
-              class="absolute right-0 top-0 h-full bg-[#FFB6B5] rounded-r flex items-center justify-end pr-6 text-white font-semibold text-xs tracking-wide"
+              class="absolute right-0 top-0 h-full bg-[#FFB6B5] rounded-r flex items-center justify-end pr-6 text-[#8D0A38] font-semibold text-xs tracking-wide"
               :style="{ width: visitorType.returning + '%' }"
             >
               <span v-if="visitorType.returning > 10">{{ visitorType.returning }}%</span>
@@ -70,8 +69,8 @@
         <!-- Acquisition Source - Barre empilée -->
         <div class="space-y-3">
           <div class="flex justify-between text-sm text-[#FFF6F6]">
-            <span class="text-xs text-[#FFB6B5]">Paid</span>
-            <span class="text-xs text-[#FFB6B5]">Unpaid</span>
+            <span class="text-xs text-[#000]">Paid</span>
+            <span class="text-xs text-[#000]">Unpaid</span>
           </div>
           <div class="relative w-full h-7 bg-[#FFF6F6] rounded">
             <!-- Paid (vert clair) -->
@@ -83,7 +82,7 @@
             </div>
             <!-- Unpaid (vert foncé) -->
             <div
-              class="absolute right-0 top-0 h-full bg-[#FFB6B5] rounded-r flex items-center justify-end pr-6 text-white font-semibold text-xs tracking-wide"
+              class="absolute right-0 top-0 h-full bg-[#FFB6B5] rounded-r flex items-center justify-end pr-6 text-[#8D0A38] font-semibold text-xs tracking-wide"
               :style="{ width: acquisitionSource.organic + '%' }"
             >
               <span v-if="acquisitionSource.organic > 10">{{ acquisitionSource.organic }}%</span>

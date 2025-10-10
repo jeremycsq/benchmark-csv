@@ -19,17 +19,17 @@
           :yMax="6"
           :yStep="1"
           yTickSuffix="%"
-          labelColor="#8D0A38"
+          labelColor="#000"
           gridColor="#FFF6F6"
         />
       </div>
-      <div class="flex items-center gap-6 mt-2 text-xs text-[#8D0A38]">
+      <div class="flex items-center gap-6 mt-2 text-xs text-[#000]">
         <div class="flex items-center gap-2">
-          <span class="inline-block w-3 h-3 rounded-full" style="background: #ffb6b5"></span>
+          <span class="inline-block w-3 h-3 rounded-full" style="background: #8d0a38"></span>
           <span>Paid Traffic ({{ Math.round(currentPaidShare * 100) }}%)</span>
         </div>
         <div class="flex items-center gap-2">
-          <span class="inline-block w-3 h-3 rounded-full" style="background: #36c38a"></span>
+          <span class="inline-block w-3 h-3 rounded-full" style="background: #ffb6b5"></span>
           <span>Unpaid Traffic ({{ Math.round((1 - currentPaidShare) * 100) }}%)</span>
         </div>
       </div>
@@ -58,7 +58,7 @@ const chartTitle = computed(() => {
   const months = Object.keys(grouped).sort()
 
   if (months.length === 1) {
-    return 'Traffic share by acquisition type - Monthly progression'
+    return 'Traffic share by acquisition type - monthly progression'
   }
 
   return 'Traffic share by acquisition type MoM change'
@@ -84,8 +84,30 @@ const labels = computed(() => {
     const daysInMonth = new Date(year, monthNum, 0).getDate()
 
     const dayLabels = []
+    const monthNames = [
+      'Jan',
+      'Feb',
+      'Mar',
+      'Apr',
+      'May',
+      'Jun',
+      'Jul',
+      'Aug',
+      'Sep',
+      'Oct',
+      'Nov',
+      'Dec',
+    ]
+    const monthName = monthNames[monthNum - 1]
+
     for (let day = 1; day <= daysInMonth; day++) {
-      dayLabels.push(`${String(day).padStart(2, '0')}/${String(monthNum).padStart(2, '0')}`)
+      if (day === 1) {
+        dayLabels.push(`01\n${monthName}`)
+      } else if (day === daysInMonth) {
+        dayLabels.push(`${String(daysInMonth).padStart(2, '0')}\n${monthName}`)
+      } else {
+        dayLabels.push(String(day).padStart(2, '0'))
+      }
     }
 
     return dayLabels
@@ -178,15 +200,15 @@ const lineData = computed(() => ({
     {
       label: 'Paid Traffic',
       data: paidMoM.value,
-      borderColor: '#FFB6B5',
-      backgroundColor: '#FFB6B5',
+      borderColor: '#8D0A38',
+      backgroundColor: '#8D0A38',
       tension: 0.4,
     },
     {
       label: 'Unpaid Traffic',
       data: unpaidMoM.value,
-      borderColor: '#36C38A',
-      backgroundColor: '#36C38A',
+      borderColor: '#FFB6B5',
+      backgroundColor: '#FFB6B5',
       tension: 0.4,
     },
   ],

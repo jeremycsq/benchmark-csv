@@ -29,11 +29,13 @@
               :class="{ 'rounded-2xl': metric.isRounded }"
             >
               <div
+                v-if="!isLoading"
                 class="text-2xl font-newedge mb-2"
                 :class="getColorClass(getNumericValue('yoy', index))"
               >
                 {{ getMetricValue('yoy', index) }}
               </div>
+              <div v-else class="h-6 w-16 bg-gray-200 rounded animate-pulse mb-2"></div>
               <div class="font-medium text-sm mb-1">{{ metric.label }}</div>
               <!-- Tooltip au hover -->
               <div
@@ -42,7 +44,7 @@
                 {{ metric.description }}
               </div>
               <!-- Icône de flèche -->
-              <div class="absolute top-6 right-6">
+              <div v-if="!isLoading" class="absolute top-6 right-6">
                 <svg
                   v-if="getNumericValue('yoy', index) > 0"
                   class="w-4 h-4 text-green-600"
@@ -84,11 +86,13 @@
               :class="{ 'rounded-2xl': metric.isRounded }"
             >
               <div
+                v-if="!isLoading"
                 class="text-2xl font-newedge mb-2"
                 :class="getColorClass(getNumericValue('mom', index))"
               >
                 {{ getMetricValue('mom', index) }}
               </div>
+              <div v-else class="h-6 w-16 bg-gray-200 rounded animate-pulse mb-2"></div>
               <div class="font-medium text-sm mb-1">{{ metric.label }}</div>
               <!-- Tooltip au hover -->
               <div
@@ -97,7 +101,7 @@
                 {{ metric.description }}
               </div>
               <!-- Icône de flèche -->
-              <div class="absolute top-6 right-6">
+              <div v-if="!isLoading" class="absolute top-6 right-6">
                 <svg
                   v-if="getNumericValue('mom', index) > 0"
                   class="w-4 h-4 text-green-600"
@@ -136,7 +140,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted, watch } from 'vue'
+import { ref, computed, onMounted, watch, nextTick } from 'vue'
 import { pageConfigs } from '@/config/pageConfig'
 import { useGlobalFiltersStore } from '@/stores/globalFilters'
 import { useSupabaseData } from '@/composables/useSupabaseData'
@@ -162,6 +166,7 @@ const dynamicTitle = computed(() => {
 // Valeurs réelles à afficher (yoy/mom) dans l'ordre:
 // [Conversion rate, Cart Abandonment rate, Average Order Value, Revenue Per Session]
 const realValues = ref<{ yoy: number[]; mom: number[] }>({ yoy: [0, 0, 0, 0], mom: [0, 0, 0, 0] })
+const isLoading = ref(true)
 
 const toNum = (v: unknown): number => {
   if (v === null || v === undefined) return 0
@@ -171,8 +176,13 @@ const toNum = (v: unknown): number => {
 }
 
 const loadConversionMetrics = async () => {
-  // Charger uniquement la table conversion (source unique)
-  await fetchTableData('conversion')
+  // Charger la table conversion en tirant parti du cache si déjà présent
+  isLoading.value = true
+  const cached = (useSupabaseData().getTableData('conversion').value as unknown as Row[]) || []
+  if (!cached || cached.length === 0) {
+    await fetchTableData('conversion')
+    await nextTick()
+  }
 
   const isAll = (v: unknown) =>
     v === undefined || v === null
@@ -197,9 +207,14 @@ const loadConversionMetrics = async () => {
     analysis_month: monthFilter,
   }
 
-  const rows = getFilteredDataFor('conversion', filters).value as unknown as Row[]
+  let rows = getFilteredDataFor('conversion', filters).value as unknown as Row[]
+  // Fallback: si filtre vide à ce moment précis, prendre toutes les lignes puis trier
+  if (!rows || rows.length === 0) {
+    rows = (useSupabaseData().getTableData('conversion').value as unknown as Row[]) || []
+  }
   if (!rows || rows.length === 0) {
     realValues.value = { yoy: [0, 0, 0, 0], mom: [0, 0, 0, 0] }
+    isLoading.value = false
     return
   }
 
@@ -215,20 +230,51 @@ const loadConversionMetrics = async () => {
 
   const get = (k: string) => latest[k]
   const yoy = [
-    toNum(get('CVR_yoy_change') ?? get('CVR_YOY_CHANGE') ?? get('CONVERSION_RATE_YOY_CHANGE')),
-    toNum(get('Cart_Abandonment_rate_yoy_change') ?? get('CART_ABANDONMENT_RATE_YOY_CHANGE') ?? 0),
-    toNum(get('AOV_yoy_change') ?? get('AOV_YOY_CHANGE') ?? get('AVERAGE_ORDER_VALUE_YOY_CHANGE')),
-    toNum(get('RPV_yoy_change') ?? get('RPV_YOY_CHANGE') ?? 0),
+    toNum(
+      get('CVR_yoy_change') ??
+        get('CVR_YOY_CHANGE') ??
+        get('CONVERSION_RATE_YOY_CHANGE') ??
+        get('conversion_rate_yoy_change'),
+    ),
+    toNum(
+      get('Cart_Abandonment_rate_yoy_change') ??
+        get('CART_ABANDONMENT_RATE_YOY_CHANGE') ??
+        get('cart_abandonment_rate_yoy_change') ??
+        0,
+    ),
+    toNum(
+      get('AOV_yoy_change') ??
+        get('AOV_YOY_CHANGE') ??
+        get('AVERAGE_ORDER_VALUE_YOY_CHANGE') ??
+        get('average_order_value_yoy_change'),
+    ),
+    toNum(get('RPV_yoy_change') ?? get('RPV_YOY_CHANGE') ?? get('rpv_yoy_change') ?? 0),
   ]
 
   const mom = [
-    toNum(get('CVR_mom_change') ?? get('CVR_MOM_CHANGE') ?? get('CONVERSION_RATE_MOM_CHANGE')),
-    toNum(get('Cart_Abandonment_rate_mom_change') ?? get('CART_ABANDONMENT_RATE_MOM_CHANGE') ?? 0),
-    toNum(get('AOV_mom_change') ?? get('AOV_MOM_CHANGE') ?? get('AVERAGE_ORDER_VALUE_MOM_CHANGE')),
-    toNum(get('RPV_mom_change') ?? get('RPV_MOM_CHANGE') ?? 0),
+    toNum(
+      get('CVR_mom_change') ??
+        get('CVR_MOM_CHANGE') ??
+        get('CONVERSION_RATE_MOM_CHANGE') ??
+        get('conversion_rate_mom_change'),
+    ),
+    toNum(
+      get('Cart_Abandonment_rate_mom_change') ??
+        get('CART_ABANDONMENT_RATE_MOM_CHANGE') ??
+        get('cart_abandonment_rate_mom_change') ??
+        0,
+    ),
+    toNum(
+      get('AOV_mom_change') ??
+        get('AOV_MOM_CHANGE') ??
+        get('AVERAGE_ORDER_VALUE_MOM_CHANGE') ??
+        get('average_order_value_mom_change'),
+    ),
+    toNum(get('RPV_mom_change') ?? get('RPV_MOM_CHANGE') ?? get('rpv_mom_change') ?? 0),
   ]
 
   realValues.value = { yoy, mom }
+  isLoading.value = false
 }
 
 onMounted(loadConversionMetrics)

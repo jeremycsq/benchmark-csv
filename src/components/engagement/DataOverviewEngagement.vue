@@ -29,6 +29,7 @@
               :class="{ 'rounded-2xl': metric.isRounded }"
             >
               <div
+                v-if="!isLoading"
                 class="text-2xl font-newedge mb-2"
                 :class="
                   getNumericValue(metric, 'yoy', index) > 0
@@ -40,6 +41,7 @@
               >
                 {{ getMetricValue(metric, 'yoy', index) }}
               </div>
+              <div v-else class="h-6 w-16 bg-gray-200 rounded animate-pulse mb-2"></div>
               <div class="font-medium text-sm mb-1">{{ metric.label }}</div>
               <!-- Tooltip -->
               <div
@@ -48,7 +50,7 @@
                 {{ metric.description }}
               </div>
               <!-- Icône de flèche -->
-              <div class="absolute top-6 right-6">
+              <div v-if="!isLoading" class="absolute top-6 right-6">
                 <svg
                   v-if="getNumericValue(metric, 'yoy', index) > 0"
                   class="w-4 h-4 text-green-600"
@@ -89,6 +91,7 @@
               :class="{ 'rounded-2xl': metric.isRounded }"
             >
               <div
+                v-if="!isLoading"
                 class="text-2xl font-newedge mb-2"
                 :class="
                   getNumericValue(metric, 'mom', index) > 0
@@ -100,6 +103,7 @@
               >
                 {{ getMetricValue(metric, 'mom', index) }}
               </div>
+              <div v-else class="h-6 w-16 bg-gray-200 rounded animate-pulse mb-2"></div>
               <div class="font-medium text-sm mb-1">{{ metric.label }}</div>
               <!-- Tooltip -->
               <div
@@ -108,7 +112,7 @@
                 {{ metric.description }}
               </div>
               <!-- Icône de flèche -->
-              <div class="absolute top-6 right-6">
+              <div v-if="!isLoading" class="absolute top-6 right-6">
                 <svg
                   v-if="getNumericValue(metric, 'mom', index) > 0"
                   class="w-4 h-4 text-green-600"
@@ -162,6 +166,7 @@ const globalFilters = useGlobalFiltersStore()
 
 // Connexion aux données Supabase pour l'engagement
 const { engagementMetrics, yoyChanges, momChanges } = useEngagementMetrics()
+const isLoading = computed(() => !engagementMetrics.value || !yoyChanges.value || !momChanges.value)
 
 // Debug: afficher les données reçues
 console.log('DataOverviewEngagement - engagementMetrics:', engagementMetrics.value)

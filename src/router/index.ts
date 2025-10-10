@@ -8,6 +8,11 @@ const router = createRouter({
       redirect: '/traffic',
     },
     {
+      path: '/theme',
+      name: 'theme-guide',
+      component: () => import('../views/ThemeGuide.vue'),
+    },
+    {
       path: '/traffic',
       name: 'traffic',
       component: () => import('../views/TrafficView.vue'),

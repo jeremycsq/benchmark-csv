@@ -50,5 +50,5 @@ const pieLabels = computed(() =>
   }),
 )
 const pieValues = computed(() => acquisitionData.value.map((d) => d.value))
-const pieColors = ['#FFB6B5', '#8D0A38', '#F39AA6', '#FFDCDB', '#ECA3AD']
+const pieColors = ['#E3404E', '#540127', '#71002F', '#8D0A38', '#AA1B40']
 </script>

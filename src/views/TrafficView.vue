@@ -6,7 +6,7 @@
     </transition>
 
     <!-- Tout le reste de la page avec fond #FFF6F6 -->
-    <section class="bg-[#FFF6F6] reveal-up">
+    <section class="reveal-up">
       <!-- Traffic Section -->
       <div class="max-w-7xl mx-auto px-8 py-12">
         <div class="flex flex-col md:flex-row md:items-center md:justify-between mb-4">
@@ -14,7 +14,7 @@
             <h3 class="text-3xl font-newedge text-[#8D0A38]">Traffic</h3>
             <span class="text-gray-600 font-normal pt-1">
               Compare performance with benchmarks from
-              <strong>{{ globalFilters.selectedIndustry }}</strong>
+              <strong>{{ globalFilters.selectedIndustry?.toLowerCase() }}</strong>
             </span>
           </div>
           <div class="flex items-center gap-4"></div>

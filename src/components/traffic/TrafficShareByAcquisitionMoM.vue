@@ -26,11 +26,11 @@
       <div class="flex items-center gap-6 mt-2 text-xs text-[#000]">
         <div class="flex items-center gap-2">
           <span class="inline-block w-3 h-3 rounded-full" style="background: #8d0a38"></span>
-          <span>Paid Traffic ({{ Math.round(currentPaidShare * 100) }}%)</span>
+          <span>Paid traffic ({{ Math.round(currentPaidShare * 100) }}%)</span>
         </div>
         <div class="flex items-center gap-2">
           <span class="inline-block w-3 h-3 rounded-full" style="background: #ffb6b5"></span>
-          <span>Unpaid Traffic ({{ Math.round((1 - currentPaidShare) * 100) }}%)</span>
+          <span>Unpaid traffic ({{ Math.round((1 - currentPaidShare) * 100) }}%)</span>
         </div>
       </div>
     </div>
@@ -102,9 +102,9 @@ const labels = computed(() => {
 
     for (let day = 1; day <= daysInMonth; day++) {
       if (day === 1) {
-        dayLabels.push(`01\n${monthName}`)
+        dayLabels.push(`01 ${monthName}`)
       } else if (day === daysInMonth) {
-        dayLabels.push(`${String(daysInMonth).padStart(2, '0')}\n${monthName}`)
+        dayLabels.push(`${String(daysInMonth).padStart(2, '0')} ${monthName}`)
       } else {
         dayLabels.push(String(day).padStart(2, '0'))
       }
@@ -198,14 +198,14 @@ const lineData = computed(() => ({
   labels: labels.value,
   datasets: [
     {
-      label: 'Paid Traffic',
+      label: 'Paid traffic',
       data: paidMoM.value,
       borderColor: '#8D0A38',
       backgroundColor: '#8D0A38',
       tension: 0.4,
     },
     {
-      label: 'Unpaid Traffic',
+      label: 'Unpaid traffic',
       data: unpaidMoM.value,
       borderColor: '#FFB6B5',
       backgroundColor: '#FFB6B5',

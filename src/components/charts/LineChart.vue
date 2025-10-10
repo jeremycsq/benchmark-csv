@@ -11,39 +11,6 @@ import { Chart, registerables } from 'chart.js'
 // Enregistrer tous les composants Chart.js
 Chart.register(...registerables)
 
-// Plugin pour gérer les labels multi-lignes
-Chart.register({
-  id: 'multiLineLabels',
-  beforeDraw: function (chart: any) {
-    const ctx = chart.ctx
-    const xAxis = chart.scales.x
-
-    if (xAxis && xAxis.ticks) {
-      xAxis.ticks.forEach((tick: any, index: number) => {
-        if (tick.label && Array.isArray(tick.label)) {
-          const x = tick.x
-          const y = tick.y + 15
-
-          ctx.save()
-          ctx.textAlign = 'center'
-          ctx.textBaseline = 'top'
-          ctx.fillStyle = xAxis.options.ticks.color
-          ctx.font = `${xAxis.options.ticks.font.weight} ${xAxis.options.ticks.font.size}px sans-serif`
-
-          tick.label.forEach((line: string, lineIndex: number) => {
-            ctx.fillText(line, x, y + lineIndex * 12)
-          })
-
-          ctx.restore()
-
-          // Masquer le label original
-          tick.label = ''
-        }
-      })
-    }
-  },
-})
-
 interface Props {
   data: {
     labels: string[]
@@ -100,7 +67,6 @@ const createChart = () => {
         mode: 'index' as const,
       },
       plugins: {
-        multiLineLabels: true,
         legend: {
           display: false,
         },
@@ -147,6 +113,13 @@ const createChart = () => {
             },
             maxRotation: 0,
             minRotation: 0,
+            callback: function (value: any, index: number) {
+              const label = this.getLabelForValue(value)
+              if (label && label.includes('\n')) {
+                return label.split('\n')
+              }
+              return label
+            },
           },
         },
         y: {
@@ -190,6 +163,39 @@ const createChart = () => {
       },
       clip: false,
     },
+    plugins: [
+      {
+        id: 'multiLineLabels',
+        beforeDraw: function (chart: any) {
+          const ctx = chart.ctx
+          const xAxis = chart.scales.x
+
+          if (xAxis && xAxis.ticks) {
+            xAxis.ticks.forEach((tick: any, index: number) => {
+              if (tick.label && Array.isArray(tick.label)) {
+                const x = tick.x
+                const y = tick.y + 15
+
+                ctx.save()
+                ctx.textAlign = 'center'
+                ctx.textBaseline = 'top'
+                ctx.fillStyle = xAxis.options.ticks.color
+                ctx.font = `${xAxis.options.ticks.font.weight} ${xAxis.options.ticks.font.size}px sans-serif`
+
+                tick.label.forEach((line: string, lineIndex: number) => {
+                  ctx.fillText(line, x, y + lineIndex * 12)
+                })
+
+                ctx.restore()
+
+                // Masquer le label original
+                tick.label = ''
+              }
+            })
+          }
+        },
+      },
+    ],
   })
 }
 

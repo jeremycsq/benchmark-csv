@@ -3,41 +3,34 @@
     <!-- Labels à gauche -->
     <div class="w-full md:w-1/3 flex flex-col items-start gap-10 justify-center">
       <div
-        class="flex flex-row items-center justify-start gap-4 border-b border-[#FFEAE3] pb-4 w-full"
+        class="flex flex-row items-center justify-start gap-4 border-b pb-4 w-full"
+        :style="{ borderBottom: `1px solid ${chartColors.tertiary}` }"
       >
         <div class="font-newedge pt-1 font-medium" style="border-radius: 4px">
-          Traffic share by acquisition channel YoY change
+          Traffic share by acquisition channel
         </div>
       </div>
     </div>
     <!-- Graphique à droite -->
-    <div class="w-full md:w-2/3 bg-white border border-[#FFEAEA] p-6 rounded-lg">
-      <div class="w-full h-60">
-        <LineChart
-          :data="lineData"
-          :yMin="-4"
-          :yMax="16"
-          :yStep="2"
-          yTickSuffix="%"
-          labelColor="#8D0A38"
-          gridColor="#FFF6F6"
-        />
-      </div>
-      <div class="flex items-center gap-6 mt-2 text-xs text-[#8D0A38]">
-        <div class="flex items-center gap-2">
-          <span class="inline-block w-3 h-3 rounded-full" style="background: #ffb6b5"></span>
-          <span>Paid Search ({{ paidSearchValue >= 0 ? '+' : '' }}{{ paidSearchValue }}%)</span>
-        </div>
-        <div class="flex items-center gap-2">
-          <span class="inline-block w-3 h-3 rounded-full" style="background: #36c38a"></span>
+    <div
+      class="w-full md:w-2/3 bg-white border p-6 rounded-lg"
+      :style="{ border: `1px solid ${chartColors.tertiary}` }"
+    >
+      <VerticalBarChart
+        :labels="barLabels"
+        :values="barValues"
+        :colors="barColors"
+        :yMin="0"
+        :yMax="100"
+        :yStep="10"
+      />
+      <div class="flex items-center gap-6 mt-2 text-xs" :style="{ color: theme.primary }">
+        <div class="flex items-center gap-2" v-for="(lbl, i) in barLabels" :key="lbl">
           <span
-            >Organic Search ({{ organicSearchValue >= 0 ? '+' : ''
-            }}{{ organicSearchValue }}%)</span
-          >
-        </div>
-        <div class="flex items-center gap-2">
-          <span class="inline-block w-3 h-3 rounded-full" style="background: #8d0a38"></span>
-          <span>Direct ({{ directValue >= 0 ? '+' : '' }}{{ directValue }}%)</span>
+            class="inline-block w-3 h-3 rounded-full"
+            :style="{ background: barColors[i] }"
+          ></span>
+          <span>{{ lbl }} ({{ barValues[i].toFixed(1) }}%)</span>
         </div>
       </div>
     </div>
@@ -47,9 +40,12 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import { useTrafficMetrics } from '@/composables/useTrafficMetrics'
-import LineChart from '@/components/charts/LineChart.vue'
+import { getChartColors, getPageTheme } from '@/config/theme'
+import VerticalBarChart from '@/components/charts/VerticalBarChart.vue'
 
 const { filteredData } = useTrafficMetrics()
+const chartColors = computed(() => getChartColors('traffic'))
+const theme = computed(() => getPageTheme('traffic'))
 
 // Calculer les changements YoY par canal depuis Supabase
 const channelYoYData = computed(() => {
@@ -63,7 +59,6 @@ const channelYoYData = computed(() => {
     ]
   }
 
-  // Calculer les changements YoY depuis les données filtrées
   const avgOverallChange =
     filteredData.value.reduce(
       (sum: number, item: Record<string, unknown>) => sum + (Number(item.yoy_change) || 0),
@@ -86,58 +81,19 @@ const channelYoYData = computed(() => {
   ]
 })
 
-// Données pour le LineChart - courbes séparées pour les canaux principaux
-const lineData = computed(() => {
-  const labels = channelYoYData.value.map((item) => item.label)
+const barLabels = computed(() => channelYoYData.value.map((d) => d.label))
+const barValues = computed(() => channelYoYData.value.map((d) => d.value))
 
-  return {
-    labels,
-    datasets: [
-      {
-        label: 'Paid Search',
-        data: [0, 0, 0, 0, channelYoYData.value.find((c) => c.label === 'Paid Search')?.value ?? 0],
-        borderColor: '#FFB6B5',
-        backgroundColor: '#FFB6B5',
-        tension: 0.4,
-        pointRadius: 6,
-        pointHoverRadius: 8,
-      },
-      {
-        label: 'Organic Search',
-        data: [
-          channelYoYData.value.find((c) => c.label === 'Organic Search')?.value ?? 0,
-          0,
-          0,
-          0,
-          0,
-        ],
-        borderColor: '#36C38A',
-        backgroundColor: '#36C38A',
-        tension: 0.4,
-        pointRadius: 6,
-        pointHoverRadius: 8,
-      },
-      {
-        label: 'Direct',
-        data: [0, channelYoYData.value.find((c) => c.label === 'Direct')?.value ?? 0, 0, 0, 0],
-        borderColor: '#8D0A38',
-        backgroundColor: '#8D0A38',
-        tension: 0.4,
-        pointRadius: 6,
-        pointHoverRadius: 8,
-      },
-    ],
-  }
-})
-
-// Computed properties pour la légende
-const paidSearchValue = computed(
-  () => channelYoYData.value.find((c) => c.label === 'Paid Search')?.value ?? 0,
-)
-const organicSearchValue = computed(
-  () => channelYoYData.value.find((c) => c.label === 'Organic Search')?.value ?? 0,
-)
-const directValue = computed(
-  () => channelYoYData.value.find((c) => c.label === 'Direct')?.value ?? 0,
+// Mapping: Paid → secondary, Organic → primary, Direct → tertiary, Social → secondary, Email → primary
+const barColors = computed(() =>
+  channelYoYData.value.map((d) => {
+    const l = d.label.toLowerCase()
+    if (l.includes('paid')) return chartColors.value.secondary
+    if (l.includes('organic')) return chartColors.value.primary
+    if (l.includes('direct')) return chartColors.value.tertiary
+    if (l.includes('social')) return chartColors.value.secondary
+    if (l.includes('email')) return chartColors.value.primary
+    return chartColors.value.primary
+  }),
 )
 </script>

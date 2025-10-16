@@ -1,5 +1,5 @@
 <template>
-  <div v-if="open" class="fixed inset-0 z-50 flex items-center justify-center bg-black/30">
+  <div v-if="open" class="fixed inset-0 z-[9999] flex items-center justify-center bg-black/30">
     <div class="bg-white rounded-xl shadow-lg p-6 min-w-[320px] max-w-[90vw]">
       <div class="flex items-center justify-between mb-4">
         <h3 class="text-lg font-semibold">{{ title || 'Download sections' }}</h3>
@@ -13,19 +13,22 @@
             v-model="selectedSections"
             :value="section.value"
             :class="checkboxClass"
+            :style="checkboxStyle"
           />
           <label :for="section.value" class="text-gray-700">{{ section.label }}</label>
         </div>
       </div>
       <slot />
       <div class="flex justify-end gap-2 mt-4">
-        <button
-          @click="$emit('close')"
-          class="px-4 pt-2.5 flex items-center justify-center py-2 rounded-3xl bg-gray-100 hover:bg-gray-200 text-gray-700 font-newedge"
-        >
+        <button @click="$emit('close')" :class="cancelBtnClass" :style="cancelBtnStyle">
           Cancel
         </button>
-        <button @click="confirm" :class="confirmBtnClass" :disabled="selectedSections.length === 0">
+        <button
+          @click="confirm"
+          :class="confirmBtnClass"
+          :style="confirmBtnStyle"
+          :disabled="selectedSections.length === 0"
+        >
           Download
         </button>
       </div>
@@ -35,6 +38,7 @@
 
 <script setup lang="ts">
 import { ref, watch, computed, defineEmits, defineProps } from 'vue'
+import { getPageTheme } from '@/config/theme'
 
 const props = defineProps<{
   open: boolean
@@ -54,35 +58,46 @@ watch(
   },
 )
 
-const themeGradients = {
-  traffic:
-    'bg-gradient-to-r from-[#307A57] to-[#3A9469] text-white hover:from-[#2D6A4E] hover:to-[#35855A]',
-  engagement:
-    'bg-gradient-to-r from-[#8B5CF6] to-[#A855F7] text-white hover:from-[#7C3AED] hover:to-[#9333EA]',
-  frustration:
-    'bg-gradient-to-r from-[#EB6909] to-[#F76F09] text-white hover:from-[#C15607] hover:to-[#DC6309]',
-  conversion:
-    'bg-gradient-to-r from-[#0A95B3] to-[#0EA9CC] text-white hover:from-[#086C82] hover:to-[#068DAB]',
-}
-const themeCheckboxAccent = {
-  traffic: 'accent-[#307A57]',
-  engagement: 'accent-[#A259D9]',
-  frustration: 'accent-[#EB6909]',
-  conversion: 'accent-[#0A95B3]',
-}
+// Styles dynamiques basés sur le thème de la page
 
 const confirmBtnClass = computed(() => {
-  const t = props.theme || 'traffic'
   return [
-    'font-newedge px-4 pt-2.5 rounded-3xl transition-all duration-300 tracking-wider flex items-center justify-center py-2',
-    themeGradients[t],
+    'font-newedge px-4 pt-2.5 rounded transition-colors duration-200 tracking-wider flex items-center justify-center py-2 text-white hover:opacity-90',
     'disabled:opacity-50',
   ].join(' ')
 })
 
+const confirmBtnStyle = computed(() => {
+  const theme = getPageTheme(props.theme || 'traffic')
+  return {
+    backgroundColor: theme.primary,
+  }
+})
+
 const checkboxClass = computed(() => {
-  const t = props.theme || 'traffic'
-  return ['mr-2 rounded focus:ring-2 focus:ring-offset-2', themeCheckboxAccent[t]].join(' ')
+  return ['mr-2 rounded focus:ring-2 focus:ring-offset-2'].join(' ')
+})
+
+const checkboxStyle = computed(() => {
+  const theme = getPageTheme(props.theme || 'traffic')
+  return {
+    accentColor: theme.primary,
+  }
+})
+
+const cancelBtnClass = computed(() => {
+  return [
+    'px-4 pt-2.5 flex items-center justify-center py-2 rounded font-newedge transition-colors border hover:opacity-90',
+  ].join(' ')
+})
+
+const cancelBtnStyle = computed(() => {
+  const theme = getPageTheme(props.theme || 'traffic')
+  return {
+    backgroundColor: 'transparent',
+    color: theme.primary,
+    borderColor: theme.primary,
+  }
 })
 
 function confirm() {

@@ -38,11 +38,23 @@ export const useGlobalFiltersStore = defineStore('globalFilters', () => {
   const { filterOptions, fetchTableData } = useSupabaseData()
 
   // Options pour les selects - spécifiques à la table active
+  const formatMonthLabel = (v: string): string => {
+    if (!v) return ''
+    if (/^\d{4}-\d{2}(-\d{2})?$/.test(v)) {
+      const iso = v.length === 7 ? `${v}-01` : v
+      const d = new Date(iso)
+      if (!isNaN(d.getTime())) {
+        return d.toLocaleString('en-US', { month: 'long', year: 'numeric' })
+      }
+    }
+    return v
+  }
+
   const monthOptions = computed(() => {
     const months = filterOptions.value.analysis_months || []
     return [
       { label: 'All months', value: 'All months' },
-      ...months.map((month: string) => ({ label: month, value: month })),
+      ...months.map((month: string) => ({ label: formatMonthLabel(month), value: month })),
     ]
   })
 
@@ -108,6 +120,11 @@ export const useGlobalFiltersStore = defineStore('globalFilters', () => {
   function setMonth(month: string) {
     selectedMonth.value = month
   }
+  const selectedMonthLabel = computed(() => {
+    const v = selectedMonth.value
+    if (!v || String(v).toLowerCase() === 'all months') return 'All months'
+    return formatMonthLabel(String(v))
+  })
   function setCountry(country: string) {
     selectedCountry.value = country
   }
@@ -152,6 +169,7 @@ export const useGlobalFiltersStore = defineStore('globalFilters', () => {
 
   return {
     selectedMonth,
+    selectedMonthLabel,
     setMonth,
     selectedCountry,
     setCountry,

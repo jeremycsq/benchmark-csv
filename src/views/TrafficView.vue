@@ -11,7 +11,7 @@
       <div class="max-w-7xl mx-auto px-8 py-12">
         <div class="flex flex-col md:flex-row md:items-center md:justify-between mb-4">
           <div class="flex flex-col">
-            <h3 class="text-3xl font-newedge text-[#8D0A38]">Traffic</h3>
+            <h3 class="text-3xl font-newedge" :style="{ color: theme.primary }">Traffic</h3>
             <span class="text-gray-600 font-normal pt-1">
               Compare performance with benchmarks from
               <strong>{{ globalFilters.selectedIndustry?.toLowerCase() }}</strong>
@@ -20,7 +20,8 @@
           <div class="flex items-center gap-4"></div>
         </div>
         <span
-          class="bg-[#FFDCDB] text-[#8D0A38] px-2 py-1 rounded-md text-sm font-semibold mt-4 inline-block"
+          class="px-2 py-1 rounded-md text-sm font-semibold mt-4 inline-block"
+          :style="{ backgroundColor: theme.accent, color: theme.primary }"
         >
           Overview
         </span>
@@ -29,30 +30,34 @@
 
         <!-- Nouveau bloc benchmark graphique -->
         <span
-          class="bg-[#FFDCDB] text-[#8D0A38] px-2 py-1 rounded-md text-sm font-semibold mt-4 inline-block reveal-up"
+          class="px-2 py-1 rounded-md text-sm font-semibold mt-4 inline-block reveal-up"
+          :style="{ backgroundColor: theme.accent, color: theme.primary }"
         >
           Traffic splits
         </span>
         <TrafficShareByTypes />
         <!-- Nouveau bloc "Change" -->
         <span
-          class="bg-[#FFDCDB] text-[#8D0A38] px-2 py-1 rounded-md text-sm font-semibold mt-4 inline-block reveal-up"
+          class="px-2 py-1 rounded-md text-sm font-semibold mt-4 inline-block reveal-up"
+          :style="{ backgroundColor: theme.accent, color: theme.primary }"
         >
           Traffic change by type
         </span>
         <TrafficChangeByType />
         <!-- Nouveau bloc "Change - Traffic Share" -->
         <span
-          class="bg-[#FFDCDB] text-[#8D0A38] px-2 py-1 rounded-md text-sm font-semibold mt-4 inline-block reveal-up"
+          class="px-2 py-1 rounded-md text-sm font-semibold mt-4 inline-block reveal-up"
+          :style="{ backgroundColor: theme.accent, color: theme.primary }"
         >
-          Top acquisition channels (YoY change)
+          Traffic share by acquisition channel
         </span>
-        <TopAcquisitionChannels />
+        <TrafficTopAcquisitionChannels />
         <!-- Section: Traffic share by acquisition type MoM change -->
         <span
-          class="bg-[#FFDCDB] text-[#8D0A38] px-2 py-1 rounded-md text-sm font-semibold mt-4 inline-block reveal-up"
+          class="px-2 py-1 rounded-md text-sm font-semibold mt-4 inline-block reveal-up"
+          :style="{ backgroundColor: theme.accent, color: theme.primary }"
         >
-          Traffic share by acquisition type MoM change
+          Paid vs unpaid traffic
         </span>
         <TrafficShareByAcquisitionMoM />
 
@@ -63,7 +68,7 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted, watch } from 'vue'
+import { onMounted, watch, computed } from 'vue'
 import { useRoute } from 'vue-router'
 import { DataOverviewTraffic } from '@/components/traffic'
 import { useScrollReveal } from '@/composables/useScrollReveal'
@@ -75,8 +80,9 @@ import {
   TrafficShareByTypes,
   TrafficChangeByType,
   TrafficShareByAcquisitionMoM,
-  TopAcquisitionChannels,
+  TrafficTopAcquisitionChannels,
 } from '@/components/traffic'
+import { getPageTheme } from '@/config/theme'
 
 // Animation générale
 useScrollReveal('.reveal-up', {
@@ -99,6 +105,8 @@ useScrollReveal('.reveal-fade', {
 const route = useRoute()
 const globalFilters = useGlobalFiltersStore()
 const { filteredData } = useTrafficMetrics()
+
+const theme = computed(() => getPageTheme('traffic'))
 
 // Ces variables sont maintenant gérées par le composant DataOverviewTraffic
 

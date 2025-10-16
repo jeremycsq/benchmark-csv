@@ -7,131 +7,186 @@
       <p class="text-center text-gray-800 mb-8">
         Conversion benchmarks across markets, industries, devices, and audiences.
       </p>
-      <div class="flex justify-center items-start gap-8 mb-8">
+      <div class="flex justify-start items-start gap-8 mb-8 w-full">
         <!-- Labels verticaux -->
         <div class="flex flex-col gap-8 items-center justify-center">
           <div class="flex items-center h-[100px]">
-            <span class="font-newedge text-3xl text-[#000000] rotate-[-90deg]">YoY</span>
+            <span class="font-newedge text-xs text-[#000000] text-center"
+              >year <br />on <br />year</span
+            >
           </div>
           <div class="flex items-center h-[100px]">
-            <span class="font-newedge text-3xl text-[#000000] rotate-[-90deg]">MoM</span>
+            <span class="font-newedge text-xs text-[#000000] text-center"
+              >month on <br />month</span
+            >
           </div>
         </div>
 
         <!-- Blocs metrics -->
-        <div class="flex flex-col gap-8">
+        <div
+          class="flex flex-col gap-8 w-full"
+          :style="{ '--border-color': pageConfig.titleColor }"
+        >
           <!-- Ligne YoY -->
-          <div class="grid grid-cols-4 gap-6">
-            <div
-              v-for="(metric, index) in pageConfig.yoyMetrics"
-              :key="`yoy-${index}`"
-              class="group border border-[#000000] p-4 flex flex-col justify-center min-w-[200px] min-h-[100px] bg-white relative hover:border-[#41474D]/40 hover:shadow-sm transition cursor-pointer"
-              :class="{ 'rounded-2xl': metric.isRounded }"
-            >
+          <div class="flex items-center w-full">
+            <template v-for="(metric, index) in pageConfig.yoyMetrics" :key="`yoy-${index}`">
               <div
-                v-if="!isLoading"
-                class="text-2xl font-newedge mb-2"
-                :class="getColorClass(getNumericValue('yoy', index))"
+                class="group border p-4 flex flex-col justify-center flex-1 min-h-[100px] bg-white relative hover:shadow-sm transition cursor-pointer"
+                :title="metric.description"
+                :class="{
+                  'rounded-1xl': metric.isRounded,
+                  'border-r-gradient': index < pageConfig.yoyMetrics.length - 1,
+                  'border-l-gradient': index > 0,
+                }"
+                :style="{ borderColor: pageConfig.titleColor }"
               >
-                {{ getMetricValue('yoy', index) }}
+                <div
+                  v-if="!isLoading"
+                  class="text-2xl font-newedge mb-2"
+                  :class="getColorClass(getNumericValue('yoy', index))"
+                >
+                  {{ getMetricValue('yoy', index) }}
+                </div>
+                <div v-else class="h-6 w-16 bg-gray-200 rounded animate-pulse mb-2"></div>
+                <div class="font-medium text-sm mb-1">{{ metric.label }}</div>
+                <!-- Icône de flèche -->
+                <div v-if="!isLoading" class="absolute top-6 right-6">
+                  <svg
+                    v-if="getNumericValue('yoy', index) > 0"
+                    class="w-4 h-4 text-green-600"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="M12 19V5m0 0l-7 7m7-7l7 7"
+                    />
+                  </svg>
+                  <svg
+                    v-else-if="getNumericValue('yoy', index) < 0"
+                    class="w-4 h-4 text-red-600"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="M12 5v14m0 0l-7-7m7 7l7-7"
+                    />
+                  </svg>
+                </div>
+                <!-- Tooltip au hover -->
+                <div
+                  class="pointer-events-none absolute left-0 right-0 top-full mt-2 bg-[#111827] text-white text-xs px-3 py-2 rounded shadow-md opacity-0 group-hover:opacity-100 transition whitespace-normal break-words z-50 text-center"
+                >
+                  {{ metric.description }}
+                </div>
               </div>
-              <div v-else class="h-6 w-16 bg-gray-200 rounded animate-pulse mb-2"></div>
-              <div class="font-medium text-sm mb-1">{{ metric.label }}</div>
-              <!-- Tooltip au hover -->
+              <!-- Shape après chaque bloc (sauf le dernier) -->
               <div
-                class="pointer-events-none absolute left-0 right-0 top-full mt-2 bg-[#111827] text-white text-xs px-3 py-2 rounded shadow-md opacity-0 group-hover:opacity-100 transition whitespace-normal break-words z-50 text-center"
+                v-if="index < pageConfig.yoyMetrics.length - 1"
+                class="relative w-4 h-full flex flex-col justify-center z-20 ml-[-1px] mr-[-1px]"
               >
-                {{ metric.description }}
+                <!-- Shape du haut (U inversé) -->
+                <div
+                  class="w-4 h-8 border-l border-r border-b rounded-b-full bg-white z-20"
+                  :style="{ borderColor: pageConfig.titleColor }"
+                ></div>
+                <!-- Barre de connexion horizontale -->
+                <div class="w-4 h-2 bg-white z-20"></div>
+                <!-- Shape du bas (U normal) -->
+                <div
+                  class="w-4 h-8 border-l border-r border-t rounded-t-full bg-white z-20"
+                  :style="{ borderColor: pageConfig.titleColor }"
+                ></div>
               </div>
-              <!-- Icône de flèche -->
-              <div v-if="!isLoading" class="absolute top-6 right-6">
-                <svg
-                  v-if="getNumericValue('yoy', index) > 0"
-                  class="w-4 h-4 text-green-600"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                    stroke-width="2"
-                    d="M7 17l9.2-9.2M17 17V7H7"
-                  />
-                </svg>
-                <svg
-                  v-else-if="getNumericValue('yoy', index) < 0"
-                  class="w-4 h-4 text-red-600"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                    stroke-width="2"
-                    d="M17 7l-9.2 9.2M7 7v10h10"
-                  />
-                </svg>
-              </div>
-            </div>
+            </template>
           </div>
 
           <!-- Ligne MoM -->
-          <div class="grid grid-cols-4 gap-6">
-            <div
-              v-for="(metric, index) in pageConfig.momMetrics"
-              :key="`mom-${index}`"
-              class="group border border-[#000000] p-4 flex flex-col justify-center min-w-[200px] min-h-[100px] bg-white relative hover:border-[#41474D]/40 hover:shadow-sm transition cursor-pointer"
-              :class="{ 'rounded-2xl': metric.isRounded }"
-            >
+          <div class="flex items-center w-full">
+            <template v-for="(metric, index) in pageConfig.momMetrics" :key="`mom-${index}`">
               <div
-                v-if="!isLoading"
-                class="text-2xl font-newedge mb-2"
-                :class="getColorClass(getNumericValue('mom', index))"
+                class="group border p-4 flex flex-col justify-center flex-1 min-h-[100px] bg-white relative hover:shadow-sm transition cursor-pointer"
+                :title="metric.description"
+                :class="{
+                  'rounded-1xl': metric.isRounded,
+                  'border-r-gradient': index < pageConfig.momMetrics.length - 1,
+                  'border-l-gradient': index > 0,
+                }"
+                :style="{ borderColor: pageConfig.titleColor }"
               >
-                {{ getMetricValue('mom', index) }}
+                <div
+                  v-if="!isLoading"
+                  class="text-2xl font-newedge mb-2"
+                  :class="getColorClass(getNumericValue('mom', index))"
+                >
+                  {{ getMetricValue('mom', index) }}
+                </div>
+                <div v-else class="h-6 w-16 bg-gray-200 animate-pulse mb-2"></div>
+                <div class="font-medium text-sm mb-1">{{ metric.label }}</div>
+                <!-- Icône de flèche -->
+                <div v-if="!isLoading" class="absolute top-6 right-6">
+                  <svg
+                    v-if="getNumericValue('mom', index) > 0"
+                    class="w-4 h-4 text-green-600"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="M12 19V5m0 0l-7 7m7-7l7 7"
+                    />
+                  </svg>
+                  <svg
+                    v-else-if="getNumericValue('mom', index) < 0"
+                    class="w-4 h-4 text-red-600"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="M12 5v14m0 0l-7-7m7 7l7-7"
+                    />
+                  </svg>
+                </div>
+                <!-- Tooltip au hover -->
+                <div
+                  class="pointer-events-none absolute left-0 right-0 top-full mt-2 bg-[#111827] text-white text-xs px-3 py-2 rounded shadow-md opacity-0 group-hover:opacity-100 transition whitespace-normal break-words z-50 text-center"
+                >
+                  {{ metric.description }}
+                </div>
               </div>
-              <div v-else class="h-6 w-16 bg-gray-200 rounded animate-pulse mb-2"></div>
-              <div class="font-medium text-sm mb-1">{{ metric.label }}</div>
-              <!-- Tooltip au hover -->
+              <!-- Shape après chaque bloc (sauf le dernier) -->
               <div
-                class="pointer-events-none absolute left-0 right-0 top-full mt-2 bg-[#111827] text-white text-xs px-3 py-2 rounded shadow-md opacity-0 group-hover:opacity-100 transition whitespace-normal break-words z-50 text-center"
+                v-if="index < pageConfig.momMetrics.length - 1"
+                class="relative w-4 h-full flex flex-col justify-center z-20 ml-[-1px] mr-[-1px]"
               >
-                {{ metric.description }}
+                <!-- Shape du haut (U inversé) -->
+                <div
+                  class="w-4 h-8 border-l border-r border-b rounded-b-full bg-white z-20"
+                  :style="{ borderColor: pageConfig.titleColor }"
+                ></div>
+                <!-- Barre de connexion horizontale -->
+                <div class="w-4 h-2 bg-white z-20"></div>
+                <!-- Shape du bas (U normal) -->
+                <div
+                  class="w-4 h-8 border-l border-r border-t rounded-t-full bg-white z-20"
+                  :style="{ borderColor: pageConfig.titleColor }"
+                ></div>
               </div>
-              <!-- Icône de flèche -->
-              <div v-if="!isLoading" class="absolute top-6 right-6">
-                <svg
-                  v-if="getNumericValue('mom', index) > 0"
-                  class="w-4 h-4 text-green-600"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                    stroke-width="2"
-                    d="M7 17l9.2-9.2M17 17V7H7"
-                  />
-                </svg>
-                <svg
-                  v-else-if="getNumericValue('mom', index) < 0"
-                  class="w-4 h-4 text-red-600"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                    stroke-width="2"
-                    d="M17 7l-9.2 9.2M7 7v10h10"
-                  />
-                </svg>
-              </div>
-            </div>
+            </template>
           </div>
         </div>
       </div>
@@ -154,12 +209,24 @@ const pageConfig = computed(() => pageConfigs.conversion)
 
 const selectedMonth = computed(() => globalFilters.selectedMonth)
 
+const formatMonthLabel = (value: string): string => {
+  if (!value) return ''
+  const isoMatch = /^\d{4}-\d{2}-\d{2}$/.test(value)
+  if (isoMatch) {
+    const d = new Date(value)
+    if (!isNaN(d.getTime())) {
+      return d.toLocaleString('en-US', { month: 'long', year: 'numeric' })
+    }
+  }
+  return value
+}
+
 const dynamicTitle = computed(() => {
   const month = selectedMonth.value
-  if (!month || month === 'All Months') {
+  if (!month || month.toLowerCase() === 'all months') {
     return 'How is your conversion rate looking this month?'
   } else {
-    return `How has Conversion evolved in ${month}?`
+    return `How has Conversion evolved in ${formatMonthLabel(month)}?`
   }
 })
 
@@ -308,3 +375,51 @@ const getColorClass = (value: number): string => {
   return 'text-gray-600'
 }
 </script>
+
+<style scoped>
+.border-r-gradient {
+  position: relative;
+  border-right: none;
+}
+
+.border-r-gradient::after {
+  content: '';
+  position: absolute;
+  right: 0;
+  top: 0;
+  width: 1px;
+  height: 100%;
+  background: linear-gradient(
+    to bottom,
+    var(--border-color) 0%,
+    var(--border-color) 20%,
+    white 21%,
+    white 79%,
+    var(--border-color) 80%,
+    var(--border-color) 100%
+  );
+}
+
+.border-l-gradient {
+  position: relative;
+  border-left: none;
+}
+
+.border-l-gradient::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 1px;
+  height: 100%;
+  background: linear-gradient(
+    to bottom,
+    var(--border-color) 0%,
+    var(--border-color) 20%,
+    white 21%,
+    white 79%,
+    var(--border-color) 80%,
+    var(--border-color) 100%
+  );
+}
+</style>

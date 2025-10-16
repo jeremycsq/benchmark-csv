@@ -10,9 +10,10 @@
         <div class="flex flex-col md:flex-row md:items-center md:justify-between mb-4">
           <div class="flex flex-col">
             <h3 class="text-3xl font-newedge text-[#32373A]">Conversion</h3>
-            <span class="text-gray-600 font-normal pt-1"
-              >Conversion is not just a click, it's the result of everything that precedes it.</span
-            >
+            <span class="text-gray-600 font-normal pt-1">
+              Compare performance with benchmarks from all industries
+              <strong>{{ globalFilters.selectedIndustry?.toLowerCase() }}</strong>
+            </span>
           </div>
           <div class="flex items-center gap-4">
             <span class="bg-[#32373A] text-white px-3 py-1 rounded-full text-sm font-semibold">{{

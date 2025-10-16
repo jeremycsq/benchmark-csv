@@ -7,14 +7,17 @@
           <span
             v-if="item.type"
             class="px-2 rounded-full text-xs font-medium"
-            :class="badgeClass(item.type)"
+            :style="badgeStyle(item.type)"
           >
             {{ item.type }}
           </span>
         </div>
         <span class="text-xs text-[#000]">{{ item.value.toFixed(2) }}%</span>
       </div>
-      <div class="relative w-full mt-2 h-4 rounded-full bg-[#E5F1F6] overflow-hidden">
+      <div
+        class="relative w-full mt-2 h-4 rounded-full overflow-hidden"
+        :style="{ background: bgColor }"
+      >
         <div
           class="absolute left-0 top-0 h-4 rounded-full flex items-center"
           :style="barStyle(item)"
@@ -26,19 +29,27 @@
 
 <script setup lang="ts">
 const props = defineProps<{
-  data: { label: string; value: number; type: 'PAID' | 'ORGANIC' | null }[]
+  data: { label: string; value: number; type: 'PAID' | 'UNPAID' | null }[]
+  paidColor: string
+  unpaidColor: string
+  bgColor: string
+  badgeTextColor?: string
+  badgeBorderColor?: string
 }>()
 
-function badgeClass(type: 'PAID' | 'ORGANIC') {
-  if (type === 'PAID') {
-    return 'bg-[#E5F1F6] text-[#119DBC] border border-[#119DBC]'
-  } else {
-    return 'bg-[#E5F1F6] text-[#119DBC] border border-[#B2E6FA]'
+const bgColor = props.bgColor
+
+function badgeStyle(type: 'PAID' | 'UNPAID') {
+  const color = type === 'PAID' ? props.paidColor : props.unpaidColor
+  return {
+    background: `${color}15`,
+    color: props.badgeTextColor || color,
+    border: `1px solid ${props.badgeBorderColor || color}`,
   }
 }
 
-function barStyle(item: { value: number; type: 'PAID' | 'ORGANIC' | null }) {
-  const color = item.type === 'PAID' ? '#119DBC' : '#B2E6FA'
+function barStyle(item: { value: number; type: 'PAID' | 'UNPAID' | null }) {
+  const color = item.type === 'PAID' ? props.paidColor : props.unpaidColor
   return {
     width: `${item.value}%`,
     background: color,

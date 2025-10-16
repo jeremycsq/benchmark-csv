@@ -4,7 +4,7 @@
       <div
         class="flex flex-row items-center justify-start gap-4 border-b border-[#ECEDFE] pb-4 w-full"
       >
-        <div class="text-[#000] font-newedge pt-1 font-medium">Frustration Change Over Time</div>
+        <div class="text-[#000] font-newedge pt-1 font-medium">Main KPIs overviews</div>
       </div>
     </div>
     <div class="w-full md:w-2/3 bg-white border border-[#ECEDFE] p-6 rounded-lg">
@@ -17,6 +17,7 @@
           yTickSuffix="%"
           :labelColor="'#C3C4F8'"
           :gridColor="'#F5F5FF'"
+          :xTickFormatter="formatMonthTicks"
         />
       </div>
       <!-- Légende comme dans Traffic YoY Change -->
@@ -122,6 +123,20 @@ const chartYBounds = ref<YBounds>({
   yStep: 20,
 })
 
+// Références pour les dates et les indices de changement de mois
+const chartDates = ref<Date[]>([])
+const monthTickIndices = ref<Set<number>>(new Set())
+
+// Formateur de ticks X: n'afficher que le mois aux changements de mois (espacement naturel)
+const formatMonthTicks = (_label: string, index: number): string => {
+  if (monthTickIndices.value.has(index)) {
+    const d = chartDates.value[index]
+    if (!d) return ''
+    return d.toLocaleDateString('en-US', { month: 'short' })
+  }
+  return ''
+}
+
 // Fonction pour récupérer les données depuis Supabase
 const fetchFrustrationData = async () => {
   try {
@@ -198,10 +213,22 @@ const fetchFrustrationData = async () => {
       })
 
       // Transformer les données pour le graphique
-      const labels = data.map((item) => {
-        // Transformer analysis_month en format "Dec-01", "Jan-01", etc.
-        const date = new Date(item.analysis_month)
-        return date.toLocaleDateString('en-US', { month: 'short', day: '2-digit' })
+      const dates = data.map((item) => new Date(item.analysis_month))
+      const uniqueDays = new Set(dates.map((d) => d.getDate())).size
+      const isMonthlyGranularity = uniqueDays === 1 // ex: toujours 01 → données mensuelles
+
+      const labels = dates.map((date) => {
+        const day = String(date.getDate()).padStart(2, '0')
+        const monthShort = date.toLocaleDateString('en-US', { month: 'short' })
+
+        if (isMonthlyGranularity) {
+          // Une valeur par mois → afficher le mois uniquement
+          return monthShort
+        }
+
+        // Journalier multi-mois → afficher le mois chaque 1er du mois, sinon juste le jour
+        if (date.getDate() === 1) return `${day} ${monthShort}`
+        return day
       })
 
       const sessionsData = data.map((item) => item.frustration_score_mom_change || 0)
@@ -240,6 +267,15 @@ const fetchFrustrationData = async () => {
       }
 
       // Calculer les bornes Y dynamiques pour un meilleur affichage
+      // + pré-calcul des indices de changement de mois pour les ticks X
+      chartDates.value = dates
+      monthTickIndices.value = new Set(
+        dates
+          .map((d, i) => ({ i, key: `${d.getFullYear()}-${d.getMonth()}` }))
+          .filter((curr, idx, arr) => idx === 0 || curr.key !== arr[idx - 1].key)
+          .map((x) => x.i),
+      )
+
       const allData = [...sessionsData, ...loadTimeData, ...jsErrorData]
       const minValue = Math.min(...allData)
       const maxValue = Math.max(...allData)
@@ -252,7 +288,7 @@ const fetchFrustrationData = async () => {
       // Calculer des étapes Y appropriées
       const yRange = yMax - yMin
       const suggestedStep = yRange / 6 // 6 intervalles = 7 ticks pour une bonne lisibilité
-      const yStep = Math.ceil(suggestedStep)
+      const yStep = Math.max(1, Math.round(suggestedStep))
 
       chartYBounds.value = {
         yMin,

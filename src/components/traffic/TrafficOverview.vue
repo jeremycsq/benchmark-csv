@@ -5,11 +5,14 @@
         class="flex flex-row items-center justify-start gap-4 border-b border-[#FFEAE3] pb-4 w-full"
       >
         <div class="px-2 py-1 rounded text-sm font-medium" style="border-radius: 4px">
-          Traffic overview
+          Overall YoY/MoM change of traffic
         </div>
       </div>
     </div>
-    <div class="w-full md:w-2/3 bg-white border border-[#FFEAEA] p-6 rounded-lg">
+    <div
+      class="w-full md:w-2/3 bg-white p-6 rounded-lg"
+      :style="{ border: `1px solid ${chartColors.tertiary}` }"
+    >
       <div class="space-y-6">
         <!-- Desktop -->
         <div class="space-y-2">
@@ -17,10 +20,13 @@
             <span class="text-xs text-[#000]">Desktop</span>
             <span class="text-xs text-[#000]">{{ deviceDistribution.desktop }}%</span>
           </div>
-          <div class="w-full bg-[#F7F9F9] rounded-l h-6">
+          <div class="w-full rounded-l h-6" :style="{ backgroundColor: chartColors.background }">
             <div
-              class="bg-[#8D0A38] h-6 rounded-l transition-all duration-500"
-              :style="{ width: deviceDistribution.desktop + '%' }"
+              class="h-6 rounded-l transition-all duration-500"
+              :style="{
+                width: deviceDistribution.desktop + '%',
+                backgroundColor: chartColors.secondary,
+              }"
             ></div>
           </div>
         </div>
@@ -31,10 +37,13 @@
             <span class="text-xs text-[#000]">Mobile</span>
             <span class="text-xs text-[#000]">{{ deviceDistribution.mobile }}%</span>
           </div>
-          <div class="w-full bg-[#F7F9F9] rounded-l h-6">
+          <div class="w-full rounded-l h-6" :style="{ backgroundColor: chartColors.background }">
             <div
-              class="bg-[#FFB6B5] h-6 rounded-l transition-all duration-500"
-              :style="{ width: deviceDistribution.mobile + '%' }"
+              class="h-6 rounded-l transition-all duration-500"
+              :style="{
+                width: deviceDistribution.mobile + '%',
+                backgroundColor: chartColors.primary,
+              }"
             ></div>
           </div>
         </div>
@@ -46,8 +55,11 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import { useTrafficMetrics } from '@/composables/useTrafficMetrics'
+import { getChartColors } from '@/config/theme'
 
 const { filteredData } = useTrafficMetrics()
+
+const chartColors = computed(() => getChartColors('traffic'))
 
 // Calculer la distribution des devices en pourcentages
 const deviceDistribution = computed(() => {

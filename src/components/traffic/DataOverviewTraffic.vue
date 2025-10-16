@@ -1,7 +1,7 @@
 <template>
   <section class="bg-white relative z-50">
     <div class="flex-1 w-full max-w-7xl mx-auto px-8 py-12 px-4 pt-4 pb-1">
-      <h2 class="font-newedge text-4xl text-center mb-2" :style="{ color: pageConfig.titleColor }">
+      <h2 class="font-newedge text-4xl text-center mb-2" :style="{ color: chartColors.primary }">
         {{ dynamicTitle }}
       </h2>
       <p class="text-center text-gray-800 mb-8">
@@ -12,31 +12,32 @@
         <!-- Labels verticaux -->
         <div class="flex flex-col gap-8 items-center justify-center">
           <div class="flex items-center h-[100px]">
-            <span class="font-newedge text-xs text-[#000000] rotate-[-90deg] text-center"
+            <span class="font-newedge text-xs text-[#000000] text-center"
               >year <br />on <br />
               year</span
             >
           </div>
           <div class="flex items-center h-[100px]">
-            <span class="font-newedge text-xs text-[#000000] rotate-[-90deg] text-center"
+            <span class="font-newedge text-xs text-[#000000] text-center"
               >month on <br />
               month</span
             >
           </div>
         </div>
         <!-- Blocs metrics -->
-        <div class="flex flex-col gap-8 w-full">
+        <div class="flex flex-col gap-8 w-full" :style="{ '--border-color': chartColors.tertiary }">
           <!-- Ligne YoY -->
           <div class="flex items-center w-full">
             <template v-for="(metric, index) in pageConfig.yoyMetrics" :key="`yoy-${index}`">
               <div
-                class="group border border-[#2E614F] p-4 flex flex-col justify-center flex-1 min-h-[100px] bg-white relative hover:shadow-sm transition cursor-pointer"
+                class="group border p-4 flex flex-col justify-center flex-1 min-h-[100px] bg-white relative hover:shadow-sm transition cursor-pointer"
                 :title="metric.description"
                 :class="{
                   'rounded-1xl': metric.isRounded,
                   'border-r-gradient': index < pageConfig.yoyMetrics.length - 1,
                   'border-l-gradient': index > 0,
                 }"
+                :style="{ borderColor: chartColors.tertiary }"
               >
                 <div
                   v-if="!isLoading"
@@ -52,7 +53,7 @@
                   {{ getMetricValue(metric, 'yoy', index) }}
                 </div>
                 <div v-else class="h-6 w-16 bg-gray-200 rounded animate-pulse mb-2"></div>
-                <div class="font-medium text-sm mb-1">{{ metric.label }}</div>
+                <div class="font-medium text-sm mb-1 text-[#000000]">{{ metric.label }}</div>
                 <!-- Icône de flèche -->
                 <div v-if="!isLoading" class="absolute top-6 right-6">
                   <svg
@@ -98,13 +99,15 @@
               >
                 <!-- Shape du haut (U inversé) -->
                 <div
-                  class="w-4 h-8 border-l border-r border-b border-[#2E614F] rounded-b-full bg-white z-20"
+                  class="w-4 h-8 border-l border-r border-b rounded-b-full bg-white z-20"
+                  :style="{ borderColor: chartColors.tertiary }"
                 ></div>
                 <!-- Barre de connexion horizontale -->
                 <div class="w-4 h-2 bg-white z-20"></div>
                 <!-- Shape du bas (U normal) -->
                 <div
-                  class="w-4 h-8 border-l border-r border-t border-[#2E614F] rounded-t-full bg-white z-20"
+                  class="w-4 h-8 border-l border-r border-t rounded-t-full bg-white z-20"
+                  :style="{ borderColor: chartColors.tertiary }"
                 ></div>
               </div>
             </template>
@@ -114,13 +117,14 @@
           <div class="flex items-center w-full">
             <template v-for="(metric, index) in pageConfig.momMetrics" :key="`mom-${index}`">
               <div
-                class="group border border-[#2E614F] p-4 flex flex-col justify-center flex-1 min-h-[100px] bg-white relative hover:shadow-sm transition cursor-pointer"
+                class="group border p-4 flex flex-col justify-center flex-1 min-h-[100px] bg-white relative hover:shadow-sm transition cursor-pointer"
                 :title="metric.description"
                 :class="{
                   'rounded-1xl': metric.isRounded,
                   'border-r-gradient': index < pageConfig.momMetrics.length - 1,
                   'border-l-gradient': index > 0,
                 }"
+                :style="{ borderColor: chartColors.tertiary }"
               >
                 <div
                   v-if="!isLoading"
@@ -182,13 +186,15 @@
               >
                 <!-- Shape du haut (U inversé) -->
                 <div
-                  class="w-4 h-8 border-l border-r border-b border-[#2E614F] rounded-b-full bg-white z-20"
+                  class="w-4 h-8 border-l border-r border-b rounded-b-full bg-white z-20"
+                  :style="{ borderColor: chartColors.tertiary }"
                 ></div>
                 <!-- Barre de connexion horizontale -->
                 <div class="w-4 h-2 bg-white z-20"></div>
                 <!-- Shape du bas (U normal) -->
                 <div
-                  class="w-4 h-8 border-l border-r border-t border-[#2E614F] rounded-t-full bg-white z-20"
+                  class="w-4 h-8 border-l border-r border-t rounded-t-full bg-white z-20"
+                  :style="{ borderColor: chartColors.tertiary }"
                 ></div>
               </div>
             </template>
@@ -202,6 +208,7 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import { pageConfigs, type PageMetrics } from '@/config/pageConfig'
+import { getChartColors } from '@/config/theme'
 import { useGlobalFiltersStore } from '@/stores/globalFilters'
 import { useTrafficMetrics } from '@/composables/useTrafficMetrics'
 
@@ -221,22 +228,32 @@ const pageConfig = computed<PageMetrics>(() => {
   return pageConfigs.traffic
 })
 
+const chartColors = computed(() => getChartColors('traffic'))
+
 const selectedMonth = computed(() => globalFilters.selectedMonth)
+
+const formatMonthLabel = (value: string): string => {
+  if (!value) return ''
+  // Si format ISO (YYYY-MM-DD)
+  const isoMatch = /^\d{4}-\d{2}-\d{2}$/.test(value)
+  if (isoMatch) {
+    const d = new Date(value)
+    if (!isNaN(d.getTime())) {
+      return d.toLocaleString('en-US', { month: 'long', year: 'numeric' })
+    }
+  }
+  // Si déjà un label lisible, on le renvoie tel quel
+  return value
+}
 
 const dynamicTitle = computed(() => {
   const month = selectedMonth.value
-
-  // Mapping des titres pour traffic
   const titles = {
     all: 'Traffic performance overview',
-    month: (m: string) => `Traffic Performance overview in ${m}`,
+    month: (m: string) => `Traffic performance overview in ${formatMonthLabel(m)}`,
   }
-
-  if (!month || month === 'All months') {
-    return titles.all
-  } else {
-    return titles.month(month)
-  }
+  if (!month || month.toLowerCase() === 'all months') return titles.all
+  return titles.month(month)
 })
 
 // Valeurs calculées depuis Supabase
@@ -269,7 +286,7 @@ const realValues = computed(() => {
 })
 
 // Fonction pour formater les valeurs avec le bon format selon le type
-const formatValue = (value: number, metric: { value: string }, index: number): string => {
+const formatValue = (value: number): string => {
   // Pour les pourcentages
   const sign = value >= 0 ? '+' : ''
   return `${sign}${value}%`
@@ -284,7 +301,7 @@ const getMetricValue = (
   // Utiliser les vraies valeurs depuis Supabase si disponibles
   if (realValues.value) {
     const realValue = realValues.value[period][index]
-    return formatValue(realValue, metric, index)
+    return formatValue(realValue)
   }
 
   // Sinon, valeur statique du config
@@ -327,12 +344,12 @@ const getNumericValue = (
   height: 100%;
   background: linear-gradient(
     to bottom,
-    #2e614f 0%,
-    #2e614f 20%,
+    var(--border-color) 0%,
+    var(--border-color) 20%,
     white 21%,
     white 79%,
-    #2e614f 80%,
-    #2e614f 100%
+    var(--border-color) 80%,
+    var(--border-color) 100%
   );
 }
 
@@ -350,12 +367,12 @@ const getNumericValue = (
   height: 100%;
   background: linear-gradient(
     to bottom,
-    #2e614f 0%,
-    #2e614f 20%,
+    var(--border-color) 0%,
+    var(--border-color) 20%,
     white 21%,
     white 79%,
-    #2e614f 80%,
-    #2e614f 100%
+    var(--border-color) 80%,
+    var(--border-color) 100%
   );
 }
 </style>

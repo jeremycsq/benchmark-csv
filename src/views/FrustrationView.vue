@@ -16,7 +16,8 @@
           <div class="flex flex-col">
             <h3 class="text-3xl font-newedge text-[#3737A2]">Frustration</h3>
             <span class="text-gray-600 font-normal pt-1"
-              >What are the biggest sources of frustration across digital journeys?
+              >Compare performance with benchmarks from
+              <strong>{{ globalFilters.selectedIndustry?.toLowerCase() }}</strong>
             </span>
           </div>
         </div>

@@ -64,7 +64,7 @@
         />
         <span class="text-gray-200 text-sm">/</span>
         <CustomSelect
-          :label="globalFilters.selectedMonth"
+          :label="globalFilters.selectedMonthLabel"
           icon="calendar"
           :options="globalFilters.monthOptions"
           @change="handleMonthChange"

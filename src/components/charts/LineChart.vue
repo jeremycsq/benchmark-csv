@@ -29,6 +29,7 @@ interface Props {
   yMax?: number
   yTickSuffix?: string
   yStep?: number
+  xTickFormatter?: (label: string, index: number, labels: string[]) => string
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -39,6 +40,7 @@ const props = withDefaults(defineProps<Props>(), {
   yMax: 100,
   yTickSuffix: '%',
   yStep: 20,
+  xTickFormatter: undefined,
 })
 
 const chartRef = ref<HTMLCanvasElement>()
@@ -55,6 +57,13 @@ const createChart = () => {
 
   const ctx = chartRef.value.getContext('2d')
   if (!ctx) return
+
+  const formatWithMaxDecimals = (v: unknown, max: number = 2): string => {
+    const num = Number(v)
+    if (!isFinite(num)) return String(v)
+    const fixed = num.toFixed(max)
+    return fixed.replace(/\.0+$/, '').replace(/\.(\d*?)0+$/, '.$1')
+  }
 
   chart = new Chart(ctx, {
     type: 'line',
@@ -87,7 +96,7 @@ const createChart = () => {
               const label = context.dataset.label
               const value = context.parsed.y
               const suffix = props.yTickSuffix ?? ''
-              const formatted = Number(value).toFixed(2)
+              const formatted = formatWithMaxDecimals(value, 2)
               return `${label}: ${formatted}${suffix}`
             },
           },
@@ -113,6 +122,19 @@ const createChart = () => {
             },
             maxRotation: 0,
             minRotation: 0,
+            autoSkip: false,
+            callback: (_value, index) => {
+              const labels = props.data?.labels ?? []
+              const label = labels[index as number]
+              if (props.xTickFormatter) {
+                try {
+                  return props.xTickFormatter(label, index as number, labels)
+                } catch {
+                  return label
+                }
+              }
+              return label
+            },
           },
         },
         y: {
@@ -130,7 +152,7 @@ const createChart = () => {
               size: 12,
               weight: 400,
             },
-            callback: (value) => `${value}${props.yTickSuffix}`,
+            callback: (value) => `${formatWithMaxDecimals(value, 2)}${props.yTickSuffix}`,
             padding: 8,
             stepSize: props.yStep,
           },

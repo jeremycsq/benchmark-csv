@@ -15,8 +15,9 @@
           <div class="flex flex-col">
             <h3 class="text-3xl font-newedge text-[#2E614F]">Engagement</h3>
             <span class="text-gray-600 font-normal pt-1"
-              >You’re enjoying a noticeable advantage over your competition.</span
-            >
+              >Compare performance with benchmarks from all industries
+              <strong>{{ globalFilters.selectedIndustry?.toLowerCase() }}</strong>
+            </span>
           </div>
         </div>
         <span

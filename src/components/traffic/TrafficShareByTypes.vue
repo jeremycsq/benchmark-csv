@@ -2,41 +2,56 @@
   <div class="flex flex-col md:flex-row mt-8 reveal-up">
     <div class="w-full md:w-1/3 flex flex-col items-start gap-4 justify-center">
       <div
-        class="flex flex-row items-center justify-start gap-4 border-b border-[#FFEAE3] pb-4 w-full"
+        class="flex flex-row items-center justify-start gap-4 border-b pb-4 w-full"
+        :style="{ borderBottom: `1px solid ${chartColors.tertiary}` }"
       >
-        <div class="font-newedge rounded font-medium" style="border-radius: 4px">Device split</div>
+        <div class="font-newedge rounded font-medium" style="border-radius: 4px">Device</div>
       </div>
       <div
-        class="flex flex-row items-center justify-start gap-4 border-b border-[#FFEAE3] pb-4 w-full"
+        class="flex flex-row items-center justify-start gap-4 border-b pb-4 w-full"
+        :style="{ borderBottom: `1px solid ${chartColors.tertiary}` }"
       >
-        <div class="font-newedge pt-1 font-medium" style="border-radius: 4px">Visitor split</div>
+        <div class="font-newedge pt-1 font-medium" style="border-radius: 4px">Visitor</div>
       </div>
       <div class="flex flex-row items-center justify-start gap-4">
         <div class="font-newedge pt-1 font-medium" style="border-radius: 4px">
-          Acquisition channel split
+          Acquisition channel
         </div>
       </div>
     </div>
-    <div class="w-full md:w-2/3 bg-white border border-[#FFEAEA] p-6 rounded-lg">
+    <div
+      class="w-full md:w-2/3 bg-white border p-6 rounded-lg"
+      :style="{ border: `1px solid ${chartColors.tertiary}` }"
+    >
       <div class="space-y-8">
         <!-- Device Distribution - Barre empilée -->
         <div class="space-y-3">
-          <div class="flex justify-between text-sm text-[#FFF6F6]">
+          <div class="flex justify-between text-sm">
             <span class="text-xs text-[#000]">Mobile</span>
             <span class="text-xs text-[#000]">Desktop</span>
           </div>
-          <div class="relative w-full h-7 bg-[#FFF6F6] rounded">
-            <!-- Mobile (vert clair) -->
+          <div
+            class="relative w-full h-7 rounded"
+            :style="{ backgroundColor: chartColors.background }"
+          >
+            <!-- Mobile (tertiary foncé) -->
             <div
-              class="absolute left-0 top-0 h-full bg-[#8D0A38] rounded-l flex items-center justify-start pl-6 text-white font-semibold text-xs tracking-wide"
-              :style="{ width: deviceDistribution.mobile + '%' }"
+              class="absolute left-0 top-0 h-full rounded-l flex items-center justify-start pl-6 text-white font-semibold text-xs tracking-wide"
+              :style="{
+                width: deviceDistribution.mobile + '%',
+                backgroundColor: chartColors.primary,
+              }"
             >
               <span v-if="deviceDistribution.mobile > 10">{{ deviceDistribution.mobile }}%</span>
             </div>
 
             <div
-              class="absolute right-0 top-0 h-full bg-[#FFB6B5] rounded-r flex items-center justify-end pr-6 text-[#8D0A38] font-semibold text-xs tracking-wide"
-              :style="{ width: deviceDistribution.desktop + '%' }"
+              class="absolute right-0 top-0 h-full rounded-r flex items-center justify-end pr-6 font-semibold text-xs tracking-wide"
+              :style="{
+                width: deviceDistribution.desktop + '%',
+                backgroundColor: chartColors.secondary,
+                color: chartColors.tertiary,
+              }"
             >
               <span v-if="deviceDistribution.desktop > 10">{{ deviceDistribution.desktop }}%</span>
             </div>
@@ -45,21 +60,28 @@
 
         <!-- Visitor Type - Barre empilée -->
         <div class="space-y-3">
-          <div class="flex justify-between text-sm text-[#FFF6F6]">
+          <div class="flex justify-between text-sm">
             <span class="text-xs text-[#000]">New</span>
             <span class="text-xs text-[#000]">Returning</span>
           </div>
-          <div class="relative w-full h-7 bg-[#FFF6F6] rounded">
+          <div
+            class="relative w-full h-7 rounded"
+            :style="{ backgroundColor: chartColors.background }"
+          >
             <div
-              class="absolute left-0 top-0 h-full bg-[#8D0A38] rounded-l flex items-center justify-start pl-6 text-white font-semibold text-xs tracking-wide"
-              :style="{ width: visitorType.new + '%' }"
+              class="absolute left-0 top-0 h-full rounded-l flex items-center justify-start pl-6 text-white font-semibold text-xs tracking-wide"
+              :style="{ width: visitorType.new + '%', backgroundColor: chartColors.primary }"
             >
               <span v-if="visitorType.new > 10">{{ visitorType.new }}%</span>
             </div>
-            <!-- Returning (vert foncé) -->
+            <!-- Returning (clair) -->
             <div
-              class="absolute right-0 top-0 h-full bg-[#FFB6B5] rounded-r flex items-center justify-end pr-6 text-[#8D0A38] font-semibold text-xs tracking-wide"
-              :style="{ width: visitorType.returning + '%' }"
+              class="absolute right-0 top-0 h-full rounded-r flex items-center justify-end pr-6 font-semibold text-xs tracking-wide"
+              :style="{
+                width: visitorType.returning + '%',
+                backgroundColor: chartColors.secondary,
+                color: chartColors.tertiary,
+              }"
             >
               <span v-if="visitorType.returning > 10">{{ visitorType.returning }}%</span>
             </div>
@@ -68,22 +90,32 @@
 
         <!-- Acquisition Source - Barre empilée -->
         <div class="space-y-3">
-          <div class="flex justify-between text-sm text-[#FFF6F6]">
+          <div class="flex justify-between text-sm">
             <span class="text-xs text-[#000]">Paid</span>
             <span class="text-xs text-[#000]">Unpaid</span>
           </div>
-          <div class="relative w-full h-7 bg-[#FFF6F6] rounded">
-            <!-- Paid (vert clair) -->
+          <div
+            class="relative w-full h-7 rounded"
+            :style="{ backgroundColor: chartColors.background }"
+          >
+            <!-- Paid (foncé) -->
             <div
-              class="absolute left-0 top-0 h-full bg-[#8D0A38] rounded-l flex items-center justify-start pl-6 text-white font-semibold text-xs tracking-wide"
-              :style="{ width: acquisitionSource.paid + '%' }"
+              class="absolute left-0 top-0 h-full rounded-l flex items-center justify-start pl-6 text-white font-semibold text-xs tracking-wide"
+              :style="{
+                width: acquisitionSource.paid + '%',
+                backgroundColor: chartColors.primary,
+              }"
             >
               <span v-if="acquisitionSource.paid > 10">{{ acquisitionSource.paid }}%</span>
             </div>
-            <!-- Unpaid (vert foncé) -->
+            <!-- Unpaid (clair) -->
             <div
-              class="absolute right-0 top-0 h-full bg-[#FFB6B5] rounded-r flex items-center justify-end pr-6 text-[#8D0A38] font-semibold text-xs tracking-wide"
-              :style="{ width: acquisitionSource.organic + '%' }"
+              class="absolute right-0 top-0 h-full rounded-r flex items-center justify-end pr-6 font-semibold text-xs tracking-wide"
+              :style="{
+                width: acquisitionSource.organic + '%',
+                backgroundColor: chartColors.secondary,
+                color: chartColors.tertiary,
+              }"
             >
               <span v-if="acquisitionSource.organic > 10">{{ acquisitionSource.organic }}%</span>
             </div>
@@ -97,8 +129,10 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import { useTrafficMetrics } from '@/composables/useTrafficMetrics'
+import { getChartColors } from '@/config/theme'
 
 const { filteredData } = useTrafficMetrics()
+const chartColors = computed(() => getChartColors('traffic'))
 
 // Calculer les distributions depuis les données Supabase selon les spécifications
 const deviceDistribution = computed(() => {

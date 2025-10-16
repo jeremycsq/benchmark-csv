@@ -19,18 +19,24 @@
           :yMax="6"
           :yStep="1"
           yTickSuffix="%"
-          labelColor="#000"
-          gridColor="#FFF6F6"
+          :labelColor="'#000'"
+          :gridColor="chartColors.background"
         />
       </div>
-      <div class="flex items-center gap-6 mt-2 text-xs text-[#000]">
+      <div class="flex items-center gap-6 mt-2 text-xs">
         <div class="flex items-center gap-2">
-          <span class="inline-block w-3 h-3 rounded-full" style="background: #8d0a38"></span>
-          <span>Paid traffic ({{ Math.round(currentPaidShare * 100) }}%)</span>
+          <span
+            class="inline-block w-3 h-3 rounded-full"
+            :style="{ background: chartColors.primary }"
+          ></span>
+          <span class="text-xs">Paid traffic</span>
         </div>
         <div class="flex items-center gap-2">
-          <span class="inline-block w-3 h-3 rounded-full" style="background: #ffb6b5"></span>
-          <span>Unpaid traffic ({{ Math.round((1 - currentPaidShare) * 100) }}%)</span>
+          <span
+            class="inline-block w-3 h-3 rounded-full"
+            :style="{ background: chartColors.secondary }"
+          ></span>
+          <span class="text-xs">Unpaid traffic</span>
         </div>
       </div>
     </div>
@@ -42,8 +48,10 @@ import { computed } from 'vue'
 import LineChart from '@/components/charts/LineChart.vue'
 import { useTrafficMetrics } from '@/composables/useTrafficMetrics'
 import type { TrafficData } from '@/composables/useSupabaseData'
+import { getChartColors } from '@/config/theme'
 
 const { filteredData } = useTrafficMetrics()
+const chartColors = computed(() => getChartColors('traffic'))
 
 // Titre dynamique selon le contexte
 const chartTitle = computed(() => {
@@ -58,7 +66,7 @@ const chartTitle = computed(() => {
   const months = Object.keys(grouped).sort()
 
   if (months.length === 1) {
-    return 'Traffic share by acquisition type - monthly progression'
+    return 'Monthly variation'
   }
 
   return 'Traffic share by acquisition type MoM change'
@@ -200,15 +208,15 @@ const lineData = computed(() => ({
     {
       label: 'Paid traffic',
       data: paidMoM.value,
-      borderColor: '#8D0A38',
-      backgroundColor: '#8D0A38',
+      borderColor: chartColors.value.secondary,
+      backgroundColor: chartColors.value.secondary,
       tension: 0.4,
     },
     {
       label: 'Unpaid traffic',
       data: unpaidMoM.value,
-      borderColor: '#FFB6B5',
-      backgroundColor: '#FFB6B5',
+      borderColor: chartColors.value.primary,
+      backgroundColor: chartColors.value.primary,
       tension: 0.4,
     },
   ],

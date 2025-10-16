@@ -182,15 +182,15 @@ watch(
 function getCurrentPageColor(): string {
   switch (route.path) {
     case '/traffic':
-      return 'text-green-700'
+      return 'text-[#8D0A38]'
     case '/engagement':
-      return 'text-purple-700'
+      return 'text-[#2E614F]'
     case '/frustration':
-      return 'text-[#EB6909]'
+      return 'text-[#3737A2]'
     case '/conversion':
-      return 'text-[#119DBC]'
+      return 'text-[#32373A]'
     default:
-      return 'text-green-700'
+      return 'text-[#8D0A38]'
   }
 }
 

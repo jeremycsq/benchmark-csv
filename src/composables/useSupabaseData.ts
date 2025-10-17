@@ -338,6 +338,24 @@ export function useSupabaseData() {
       }
 
       console.log(`✅ Données ${tableName} récupérées:`, result?.length || 0, 'enregistrements')
+      if (result && result.length > 0) {
+        console.log(`🔍 Premier élément ${tableName}:`, result[0])
+        console.log(`🔍 Clés disponibles dans ${tableName}:`, Object.keys(result[0]))
+
+        // Vérifier spécifiquement les pays et industries pour la table conversion
+        if (tableName === 'conversion') {
+          const countries = [
+            ...new Set(
+              result.map((item) => item.COUNTRY_CODE || item.country_code).filter(Boolean),
+            ),
+          ]
+          const industries = [
+            ...new Set(result.map((item) => item.INDUSTRY || item.industry).filter(Boolean)),
+          ]
+          console.log(`🌍 Pays trouvés dans ${tableName}:`, countries)
+          console.log(`🏭 Industries trouvées dans ${tableName}:`, industries)
+        }
+      }
     } catch (err) {
       console.error(`❌ Erreur lors de la récupération des données ${tableName}:`, err)
       error.value = err instanceof Error ? err.message : String(err)
@@ -348,31 +366,58 @@ export function useSupabaseData() {
 
   // Fonction pour extraire les options de filtre d'une table spécifique
   const extractFilterOptions = (tableData: any[]) => {
+    console.log('🔍 extractFilterOptions - Données reçues:', tableData.length, 'éléments')
+    if (tableData.length > 0) {
+      console.log('🔍 extractFilterOptions - Premier élément:', tableData[0])
+      console.log('🔍 extractFilterOptions - Clés disponibles:', Object.keys(tableData[0]))
+    }
+
     const countries = new Set<string>()
     const industries = new Set<string>()
     const devices = new Set<string>()
     const analysisMonths = new Set<string>()
 
-    tableData.forEach((item) => {
-      const country = (item.country || item.COUNTRY_CODE || '').toString().trim()
-      if (country) countries.add(country)
+    tableData.forEach((item, index) => {
+      if (index < 3) {
+        console.log(`🔍 extractFilterOptions - Élément ${index}:`, item)
+      }
+
+      const country = (item.country || item.COUNTRY_CODE || item.country_code || '')
+        .toString()
+        .trim()
+      if (country) {
+        countries.add(country)
+        if (index < 3) console.log(`🌍 Pays trouvé: ${country}`)
+      }
 
       const industry = (item.industry || item.INDUSTRY || '').toString().trim()
-      if (industry) industries.add(industry)
+      if (industry) {
+        industries.add(industry)
+        if (index < 3) console.log(`🏭 Industrie trouvée: ${industry}`)
+      }
 
       const device = (item.device || item.DEVICE_ID || '').toString().trim()
-      if (device && device.toLowerCase() !== 'all') devices.add(device)
+      if (device && device.toLowerCase() !== 'all') {
+        devices.add(device)
+        if (index < 3) console.log(`📱 Device trouvé: ${device}`)
+      }
 
       const month = (item.analysis_month || item.ANALYSIS_MONTH || '').toString().trim()
-      if (month) analysisMonths.add(month)
+      if (month) {
+        analysisMonths.add(month)
+        if (index < 3) console.log(`📅 Mois trouvé: ${month}`)
+      }
     })
 
-    return {
+    const result = {
       countries: Array.from(countries).sort(),
       industries: Array.from(industries).sort(),
       devices: Array.from(devices).sort(),
       analysis_months: Array.from(analysisMonths).sort(),
     }
+
+    console.log('🔍 extractFilterOptions - Résultat final:', result)
+    return result
   }
 
   // Fonction pour mettre à jour les filterOptions globaux à partir d'une table
@@ -413,9 +458,19 @@ export function useSupabaseData() {
     updateFilterOptions,
     // Nouvelles API pour tables multiples
     getTableData: (tableName: string) =>
-      computed(
-        () => (tableDataStore[tableName as keyof typeof tableDataStore]?.data as any[]) || [],
-      ),
+      computed(() => {
+        const tableData = tableDataStore[tableName as keyof typeof tableDataStore]
+        return {
+          data: (tableData?.data as any[]) || [],
+          filterOptions: tableData?.filterOptions || {
+            countries: [],
+            industries: [],
+            devices: [],
+            analysis_months: [],
+          },
+          lastFetch: tableData?.lastFetch,
+        }
+      }),
     getFilteredDataFor: (
       tableName: string,
       filters: Partial<{

@@ -5,76 +5,84 @@
         <DataOverviewConversion />
       </div>
     </section>
-    <section class="bg-[#EEEFF1] reveal-up">
+    <section class="reveal-up">
       <div class="max-w-7xl mx-auto px-8 py-12">
         <div class="flex flex-col md:flex-row md:items-center md:justify-between mb-4">
           <div class="flex flex-col">
-            <h3 class="text-3xl font-newedge text-[#32373A]">Conversion</h3>
+            <h3 class="text-3xl font-newedge" :style="{ color: theme.primary }">Conversion</h3>
             <span class="text-gray-600 font-normal pt-1">
               Compare performance with benchmarks from all industries
               <strong>{{ globalFilters.selectedIndustry?.toLowerCase() }}</strong>
             </span>
           </div>
-          <div class="flex items-center gap-4">
-            <span class="bg-[#32373A] text-white px-3 py-1 rounded-full text-sm font-semibold">{{
-              headerText
-            }}</span>
-            <span class="text-3xl font-newedge text-[#000]">{{ headerValue }}%</span>
-          </div>
         </div>
         <span
-          class="bg-[#ECEDEF] text-[#32373A] px-2 py-1 rounded-xl text-sm font-semibold inline-block mt-4"
+          class="px-2 py-1 rounded-xl text-sm font-semibold inline-block mt-4"
+          :style="{ backgroundColor: theme.background, color: theme.primary }"
           >Overview</span
         >
 
         <ConversionOverview ref="overviewRef" />
 
         <span
-          class="bg-[#ECEDEF] text-[#32373A] px-2 py-1 rounded-xl text-sm font-semibold mt-4 inline-block"
+          class="px-2 py-1 rounded-xl text-sm font-semibold mt-4 inline-block"
+          :style="{ backgroundColor: theme.background, color: theme.primary }"
           >E-Commerce Conversion Metrics</span
         >
         <ConversionEcommerceMetrics ref="ecommerceMetricsRef" />
 
         <span
-          class="bg-[#ECEDEF] text-[#32373A] px-2 py-1 rounded-xl text-sm font-semibold mt-4 inline-block"
+          class="px-2 py-1 rounded-xl text-sm font-semibold mt-4 inline-block"
+          :style="{ backgroundColor: theme.background, color: theme.primary }"
           >E-commerce change by acquisition</span
         >
         <div class="flex flex-col md:flex-row mt-8 mb-12">
           <div class="w-full md:w-1/3 flex flex-col items-start gap-4 justify-center">
             <div
-              class="flex flex-row items-center justify-start gap-4 border-b border-[#ECEDEF] pb-4 w-full"
+              class="flex flex-row items-center justify-start gap-4 border-b pb-4 w-full"
+              :style="{ borderColor: theme.accent }"
             >
-              <div class="text-[#000] font-newedge pt-1 font-medium">Acquisition Channel</div>
+              <div class="font-newedge pt-1 font-medium" :style="{ color: theme.text }">
+                Acquisition Channel
+              </div>
             </div>
           </div>
           <ConversionPaidUnpaid ref="paidUnpaidRef" />
         </div>
 
         <span
-          class="bg-[#ECEDEF] text-[#32373A] px-2 py-1 rounded-xl text-sm font-semibold mt-4 inline-block"
+          class="px-2 py-1 rounded-xl text-sm font-semibold mt-4 inline-block"
+          :style="{ backgroundColor: theme.background, color: theme.primary }"
           >E-commerce conversion rate by acquisition channel</span
         >
         <div class="flex flex-col md:flex-row mt-8 mb-12">
           <div class="w-full md:w-1/3 flex flex-col items-start gap-4 justify-center">
             <div
-              class="flex flex-row items-center justify-start gap-4 border-b border-[#ECEDEF] pb-4 w-full"
+              class="flex flex-row items-center justify-start gap-4 border-b pb-4 w-full"
+              :style="{ borderColor: theme.accent }"
             >
-              <div class="text-[#000] font-newedge pt-1 font-medium">Acquisition Channel</div>
+              <div class="font-newedge pt-1 font-medium" :style="{ color: theme.text }">
+                Acquisition Channel
+              </div>
             </div>
           </div>
           <ConversionByAcquisition ref="byAcquisitionRef" />
         </div>
 
         <span
-          class="bg-[#ECEDEF] text-[#32373A] px-2 py-1 rounded-xl text-sm font-semibold mt-4 inline-block"
+          class="px-2 py-1 rounded-xl text-sm font-semibold mt-4 inline-block"
+          :style="{ backgroundColor: theme.background, color: theme.primary }"
           >E-commerce conversion metrics</span
         >
         <div class="flex flex-col md:flex-row mt-8 mb-12">
           <div class="w-full md:w-1/3 flex flex-col items-start gap-4 justify-center">
             <div
-              class="flex flex-row items-center justify-start gap-4 border-b border-[#ECEDEF] pb-4 w-full"
+              class="flex flex-row items-center justify-start gap-4 border-b pb-4 w-full"
+              :style="{ borderColor: theme.accent }"
             >
-              <div class="text-[#000] font-newedge pt-1 font-medium">Acquisition Channel</div>
+              <div class="font-newedge pt-1 font-medium" :style="{ color: theme.text }">
+                Acquisition Channel
+              </div>
             </div>
           </div>
           <ConversionMetricsVariant ref="metricsVariantRef" />
@@ -89,6 +97,7 @@ import DataOverviewConversion from '@/components/conversion/DataOverviewConversi
 import { useScrollReveal } from '@/composables/useScrollReveal'
 import { ref, computed, watch, onMounted } from 'vue'
 import { useGlobalFiltersStore } from '@/stores/globalFilters'
+import { getPageTheme } from '@/config/theme'
 // import { useConversionDataStore } from '@/stores/conversionData'
 import {
   ConversionOverview,
@@ -99,6 +108,10 @@ import {
 } from '@/components/conversion'
 
 const globalFilters = useGlobalFiltersStore()
+
+// Thème pour les couleurs
+const theme = computed(() => getPageTheme('conversion'))
+
 // Ancien store non utilisé par ce composant depuis le passage à DataOverviewConversion
 // Conservé si d'autres sous-composants en dépendent plus bas dans la page
 // const conversionStore = useConversionDataStore()

@@ -14,8 +14,6 @@ export function useTrafficMetrics() {
       data.value.length,
       'éléments',
     )
-    console.log('🚥 useTrafficMetrics - Première ligne de data.value:', data.value[0])
-    console.log('🚦 useTrafficMetrics - Toutes les données:', data.value)
 
     // Construire les filtres - "All" signifie pas de filtre (undefined)
     const filters: {
@@ -49,17 +47,15 @@ export function useTrafficMetrics() {
       filters.analysis_month = globalFilters.selectedMonth
     }
 
-    console.log('useTrafficMetrics - Filtres globaux:', {
+    console.log('🚦 useTrafficMetrics - Filtres globaux:', {
       selectedCountry: globalFilters.selectedCountry,
       selectedIndustry: globalFilters.selectedIndustry,
       selectedDevice: globalFilters.selectedDevice,
       selectedMonth: globalFilters.selectedMonth,
       selectedVisitorType: globalFilters.selectedVisitorType,
     })
-    console.log('useTrafficMetrics - Filtres actifs appliqués:', filters)
 
     let filtered = getFilteredData(filters)
-    console.log('useTrafficMetrics - Données filtrées:', filtered.value.length, 'éléments')
 
     // Fallback: si "All Devices" (all_devices) ne retourne rien pour une industrie/pays donnée,
     // on enlève le filtre device pour garder des données.
@@ -69,7 +65,7 @@ export function useTrafficMetrics() {
     ) {
       const { device, ...rest } = filters
       console.log(
-        'useTrafficMetrics - Fallback all_devices → suppression du filtre device (0 résultat avec all_devices)',
+        '🚦 useTrafficMetrics - Fallback all_devices → suppression du filtre device (0 résultat avec all_devices)',
       )
       filtered = getFilteredData(rest)
     }
@@ -134,12 +130,11 @@ export function useTrafficMetrics() {
   // Calcul des variations YoY
   const yoyChanges = computed(() => {
     console.log(
-      'useTrafficMetrics - yoyChanges - filteredData.value.length:',
+      '🚦 useTrafficMetrics - yoyChanges - filteredData.value.length:',
       filteredData.value.length,
     )
 
     if (!filteredData.value.length) {
-      console.log('useTrafficMetrics - yoyChanges - Pas de données filtrées')
       return {
         overall: 0,
         desktop: 0,
@@ -152,10 +147,11 @@ export function useTrafficMetrics() {
 
     // Debug: voir les champs disponibles dans la première ligne
     console.log(
-      'useTrafficMetrics - yoyChanges - Première ligne de données:',
+      '🚦 useTrafficMetrics - yoyChanges - Première ligne de données:',
       filteredData.value[0],
     )
-    console.log('useTrafficMetrics - yoyChanges - Champs YoY disponibles:', {
+
+    console.log('🚦 useTrafficMetrics - yoyChanges - Champs YoY disponibles:', {
       yoy_change: filteredData.value[0]?.yoy_change,
       mobile_yoy_change: filteredData.value[0]?.mobile_yoy_change,
       new_visitor_yoy_change: filteredData.value[0]?.new_visitor_yoy_change,
@@ -191,7 +187,6 @@ export function useTrafficMetrics() {
       returning: Math.round(avgYoyChange - avgNewVisitorYoyChange), // Approximation
     }
 
-    console.log('useTrafficMetrics - yoyChanges - Résultat calculé:', result)
     return result
   })
 
@@ -388,12 +383,11 @@ export function useTrafficMetrics() {
   // Données pour le graphique linéaire
   const chartData = computed(() => {
     console.log(
-      'useTrafficMetrics - chartData - filteredData.value.length:',
+      '🚦 useTrafficMetrics - chartData - filteredData.value.length:',
       filteredData.value.length,
     )
 
     if (!filteredData.value.length) {
-      console.log('useTrafficMetrics - chartData - Aucune donnée, retour des données par défaut')
       return {
         labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
         datasets: [],
@@ -468,11 +462,6 @@ export function useTrafficMetrics() {
   // État de chargement et erreurs
   const isLoading = computed(() => !data.value || data.value.length === 0)
   const error = computed(() => null) // TODO: gérer les erreurs
-
-  // Debug: afficher les données
-  console.log('useTrafficMetrics - data.value:', data.value)
-  console.log('useTrafficMetrics - filteredData.value:', filteredData.value)
-  console.log('useTrafficMetrics - yoyChanges.value:', yoyChanges.value)
 
   // Test unitaire complet pour identifier les NaN
   if (filteredData.value.length > 0) {

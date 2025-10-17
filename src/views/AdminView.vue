@@ -88,7 +88,7 @@ const selectedTable = ref('traffic')
 watch(
   selectedTable,
   (newTable) => {
-    console.log(`🎯 AdminView - selectedTable changé vers: "${newTable}"`)
+
   },
   { immediate: true },
 )

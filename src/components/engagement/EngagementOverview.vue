@@ -125,10 +125,9 @@ async function fetchTimeseries() {
 
     const { data, error } = await q
     if (error) throw error
-    console.log('📊 Engagement timeseries data:', data)
+
     rows.value = data || []
   } catch (e) {
-    console.error('fetchTimeseries engagement error:', e)
     rows.value = []
   }
 }
@@ -179,10 +178,6 @@ const engagementChartData = computed(() => {
   const series2 = rows.value.map((r) => Number(r.TIME_SPENT_MOM_CHANGE ?? 0))
   const series3 = rows.value.map((r) => Number(r.SCROLL_RATE_MOM_CHANGE ?? 0))
 
-  console.log('📅 Labels pour le graphique:', labels)
-  console.log('🔍 Dates uniques:', [...new Set(labels)])
-  console.log('📊 Nombre de lignes:', rows.value.length)
-
   // Si toutes les dates sont identiques, ne garder qu'une seule entrée
   const uniqueDates = new Set(labels)
   let finalLabels = labels
@@ -201,7 +196,7 @@ const engagementChartData = computed(() => {
     finalSeries2 = [avgSeries2]
     finalSeries3 = [avgSeries3]
 
-    console.log('🔄 Données groupées par date unique:', {
+    console.log('🔍 EngagementOverview - Données moyennées:', {
       date: finalLabels[0],
       pageviews: avgSeries1,
       timeSpent: avgSeries2,

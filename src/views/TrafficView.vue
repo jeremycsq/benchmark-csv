@@ -112,15 +112,12 @@ const theme = computed(() => getPageTheme('traffic'))
 
 // Initialiser les données Supabase pour la table traffic
 onMounted(() => {
-  console.log('🔧 TrafficView - Chargement des données de la table traffic')
   globalFilters.initializeData('traffic')
   // Audit des données quand disponibles (léger et en console)
   setTimeout(() => {
     try {
       logTrafficAudit('TrafficView mount', filteredData.value as unknown as [])
-    } catch (e) {
-      console.warn('Audit error:', e)
-    }
+    } catch (e) {}
   }, 500)
 })
 
@@ -129,7 +126,6 @@ watch(
   () => route.path,
   (newPath) => {
     if (newPath === '/traffic') {
-      console.log('📄 TrafficView - Navigation détectée vers /traffic, rechargement des données')
       globalFilters.initializeData('traffic')
     }
   },

@@ -31,12 +31,12 @@ export const useApiDataStore = defineStore('apiData', () => {
       }
 
       const responseData = await response.json()
-      console.log('API DATA:', responseData)
+
       data.value = responseData
       lastFetch.value = new Date()
     } catch (err) {
       error.value = err instanceof Error ? err.message : 'Unknown error'
-      console.error('Error fetching data:', err)
+
     } finally {
       loading.value = false
     }

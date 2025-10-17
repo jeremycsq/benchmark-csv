@@ -3,15 +3,21 @@
     <!-- Colonne texte à gauche -->
     <div class="w-full md:w-1/3 flex flex-col items-start gap-4 justify-center">
       <div
-        class="flex flex-row items-center justify-start gap-4 border-b border-[#ECEDFE] pb-4 w-full"
+        class="flex flex-row items-center justify-start gap-4 border-b pb-4 w-full"
+        :style="{ borderColor: theme.accent }"
       >
-        <div class="text-[#000] font-newedge pt-1 font-medium">Frustration Metrics Benchmarks</div>
+        <div class="font-newedge pt-1 font-medium" :style="{ color: theme.text }">
+          Frustration Metrics Benchmarks
+        </div>
       </div>
       <p class="text-sm leading-6 pr-2" :style="{ color: descriptionColor }"></p>
     </div>
 
     <!-- Carte graphique à droite -->
-    <div class="w-full md:w-2/3 bg-white border border-[#ECEDFE] px-6 py-16 rounded-lg">
+    <div
+      class="w-full md:w-2/3 bg-white border px-6 py-16 rounded-lg"
+      :style="{ borderColor: theme.accent }"
+    >
       <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
         <MiniBarChart
           :values="sessionsValues"
@@ -50,7 +56,7 @@ import { ref, watch, onMounted } from 'vue'
 import { supabase } from '@/lib/supabase'
 import { useGlobalFiltersStore } from '@/stores/globalFilters'
 import MiniBarChart from '@/components/charts/MiniBarChart.vue'
-import { getChartColors, getPageTheme } from '@/config/theme'
+import { getPageTheme } from '@/config/theme'
 
 type Triple = [number, number, number]
 
@@ -58,18 +64,17 @@ const globalFilters = useGlobalFiltersStore()
 
 // Couleurs thème frustration
 const theme = getPageTheme('frustration')
-const chartTheme = getChartColors('frustration')
 
 // Ordre: [p25, Benchmark, p75]
 const barColors: [string, string, string] = [
-  chartTheme.tertiary,
-  chartTheme.secondary,
-  theme.primary,
+  theme.tertiary, // '#7171ff' - Bleu clair pour P25
+  theme.secondary, // '#5252db' - Bleu moyen pour Benchmark
+  theme.primary, // '#020249' - Bleu foncé pour P75
 ]
-const labelColor = '#97A6BA'
-const valueColor = '#000'
-const metricLabelColor = '#000'
-const descriptionColor = '#6B7280'
+const labelColor = theme.text
+const valueColor = theme.text
+const metricLabelColor = theme.text
+const descriptionColor = theme.text
 
 const sessionsValues = ref<Triple>([0, 0, 0])
 const loadTimeValues = ref<Triple>([0, 0, 0])

@@ -85,14 +85,13 @@
         />
 
         <button
-          class="font-semibold px-4 py-2 rounded transition-all duration-300"
-          :class="{
-            'bg-[#8D0A38] text-white hover:bg-[#72082C]': $route.path === '/traffic',
-            'bg-[#2E614F] text-white hover:bg-[#1F4A3A]': $route.path === '/engagement',
-            'bg-[#3737A2] text-white hover:bg-[#2A2A7A]': $route.path === '/frustration',
-            'bg-[#41474D] text-white hover:bg-[#32373A]': $route.path === '/conversion',
+          class="font-semibold px-4 py-2 rounded transition-all duration-300 text-white"
+          :style="{
+            backgroundColor: getPageTheme(currentPageName).primary,
           }"
-          @click="showDownloadModal = true"
+          @mouseenter="handleButtonHover"
+          @mouseleave="handleButtonLeave"
+          @click="handleDownloadClick"
         >
           {{
             $route.path === '/traffic'
@@ -151,7 +150,12 @@
       <div class="flex items-center gap-4">
         <button
           @click="$router.push('/traffic')"
-          class="bg-[#8D0A38] text-white py-2 px-4 rounded-md hover:bg-[#72082C] transition-colors font-medium text-sm"
+          class="text-white py-2 px-4 rounded-md transition-colors font-medium text-sm"
+          :style="{
+            backgroundColor: getPageTheme('traffic').primary,
+          }"
+          @mouseenter="handleAdminButtonHover"
+          @mouseleave="handleAdminButtonLeave"
         >
           See CSQ Data
         </button>
@@ -173,9 +177,11 @@
     <RouterLink
       to="/traffic"
       class="py-3 font-medium transition-colors"
+      :style="{
+        color: $route.path === '/traffic' ? getPageTheme('traffic').primary : '#6B7280',
+      }"
       :class="{
-        'text-[#8D0A38]': $route.path === '/traffic',
-        'text-gray-400 hover:text-[#8D0A38]': $route.path !== '/traffic',
+        'hover:text-opacity-80': true,
       }"
     >
       Traffic
@@ -183,9 +189,11 @@
     <RouterLink
       to="/engagement"
       class="py-3 font-medium transition-colors"
+      :style="{
+        color: $route.path === '/engagement' ? getPageTheme('engagement').primary : '#6B7280',
+      }"
       :class="{
-        'text-[#2E614F]': $route.path === '/engagement',
-        'text-gray-400 hover:text-[#2E614F]': $route.path !== '/engagement',
+        'hover:text-opacity-80': true,
       }"
     >
       Engagement
@@ -193,9 +201,11 @@
     <RouterLink
       to="/frustration"
       class="py-3 font-medium transition-colors"
+      :style="{
+        color: $route.path === '/frustration' ? getPageTheme('frustration').primary : '#6B7280',
+      }"
       :class="{
-        'text-[#3737A2]': $route.path === '/frustration',
-        'text-gray-400 hover:text-[#3737A2]': $route.path !== '/frustration',
+        'hover:text-opacity-80': true,
       }"
     >
       Frustration
@@ -203,9 +213,11 @@
     <RouterLink
       to="/conversion"
       class="py-3 font-medium transition-colors"
+      :style="{
+        color: $route.path === '/conversion' ? getPageTheme('conversion').primary : '#6B7280',
+      }"
       :class="{
-        'text-[#41474D]': $route.path === '/conversion',
-        'text-gray-400 hover:text-[#41474D]': $route.path !== '/conversion',
+        'hover:text-opacity-80': true,
       }"
     >
       Conversion
@@ -213,9 +225,6 @@
   </nav>
   <DownloadModal
     :open="showDownloadModal"
-    :sections="downloadSections"
-    :title="downloadModalTitle"
-    :theme="downloadModalTheme"
     @close="showDownloadModal = false"
     @confirm="handleDownloadConfirm"
   />
@@ -232,6 +241,8 @@ import DownloadModal from '@/components/DownloadModal.vue'
 import { useGlobalFiltersStore } from '@/stores/globalFilters'
 import { useConversionDataStore } from '../stores/conversionData'
 import { useAuth } from '../composables/useAuth'
+import { getPageTheme } from '../config/theme'
+import { useDataExtractor } from '@/composables/useDataExtractor'
 
 const isSticky = ref(false)
 const navRef = ref<HTMLElement | null>(null)
@@ -346,60 +357,117 @@ function handleVisitorTypeChange(value: string) {
 
 const showDownloadModal = ref(false)
 const route = useRoute()
-const downloadSectionsMap = {
-  '/traffic': [
-    { label: 'Overview', value: 'overview' },
-    { label: 'Traffic splits', value: 'traffic_share' },
-    { label: 'Change by type', value: 'change_type' },
-    { label: 'Top acquisition channels (YoY change)', value: 'acquisition_share' },
-  ],
-  '/engagement': [
-    { label: 'Overview', value: 'overview' },
-    { label: 'Benchmark', value: 'benchmark' },
-  ],
-  '/frustration': [
-    { label: 'Overview', value: 'overview' },
-    { label: 'Benchmark', value: 'benchmark' },
-  ],
-  '/conversion': [
-    { label: 'Overview', value: 'overview' },
-    { label: 'Benchmark', value: 'benchmark' },
-  ],
-}
-const downloadSections = computed(
-  () => downloadSectionsMap[route.path as keyof typeof downloadSectionsMap] || [],
-)
-const downloadModalTitle = computed(() => {
-  if (route.path === '/traffic') return 'Download traffic data'
-  if (route.path === '/engagement') return 'Download engagement data'
-  if (route.path === '/frustration') return 'Download frustration data'
-  if (route.path === '/conversion') return 'Download conversion data'
-  return 'Download data'
-})
-const downloadModalTheme = computed(() => {
+const { extractComponentData, generateCSVContent } = useDataExtractor()
+
+// Nom de la page actuelle
+const currentPageName = computed(() => {
   if (route.path === '/traffic') return 'traffic'
   if (route.path === '/engagement') return 'engagement'
   if (route.path === '/frustration') return 'frustration'
   if (route.path === '/conversion') return 'conversion'
-  return 'traffic'
+  return 'traffic' // Par défaut
 })
 
 // Couleur du logo selon la page
 const logoColor = computed(() => {
-  if (route.path === '/traffic') return '#8D0A38'
-  if (route.path === '/engagement') return '#2E614F'
-  if (route.path === '/frustration') return '#3737A2'
-  if (route.path === '/conversion') return '#41474D'
-  return '#8D0A38' // Par défaut, couleur traffic
+  return getPageTheme(currentPageName.value).primary
 })
+function handleDownloadClick() {
+  console.log('🔽 Download button clicked!')
+  console.log('🔽 Current route:', route.path)
+  showDownloadModal.value = true
+  console.log('🔽 Modal should be open:', showDownloadModal.value)
+}
+
 function handleDownloadConfirm(selected: string[]) {
-  // Ici tu fais ce que tu veux avec les sections sélectionnées
-  console.log('Sections à télécharger :', selected)
+  console.log('📥 Download confirmed with sections:', selected)
+
+  if (selected.length === 0) {
+    console.warn('⚠️ No sections selected for download')
+    return
+  }
+
+  // Générer un fichier CSV pour chaque composant sélectionné
+  selected.forEach((componentName, index) => {
+    try {
+      console.log(`📊 Extracting data for component: ${componentName}`)
+
+      // Extraire les données du composant
+      const componentData = extractComponentData(componentName, currentPageName.value)
+
+      // Générer le contenu CSV
+      const csvContent = generateCSVContent(componentData)
+
+      // Créer un nom de fichier unique pour chaque composant
+      const timestamp = new Date().toISOString().slice(0, 19).replace(/:/g, '-')
+      const filename = `${componentName}_${timestamp}.csv`
+
+      // Télécharger le fichier avec un délai pour éviter les conflits
+      setTimeout(() => {
+        downloadCSV(csvContent, filename)
+        console.log(`✅ CSV downloaded for ${componentName}:`, filename)
+      }, index * 500) // Délai de 500ms entre chaque téléchargement
+    } catch (error) {
+      console.error(`❌ Error extracting data for ${componentName}:`, error)
+    }
+  })
+
+  // Fermer le modal après un délai
+  setTimeout(
+    () => {
+      showDownloadModal.value = false
+    },
+    selected.length * 500 + 1000,
+  )
+}
+
+function downloadCSV(content: string, filename: string) {
+  const blob = new Blob([content], { type: 'text/csv;charset=utf-8;' })
+  const link = document.createElement('a')
+
+  if (link.download !== undefined) {
+    const url = URL.createObjectURL(blob)
+    link.setAttribute('href', url)
+    link.setAttribute('download', filename)
+    link.style.visibility = 'hidden'
+    document.body.appendChild(link)
+    link.click()
+    document.body.removeChild(link)
+    console.log('✅ CSV downloaded:', filename)
+  }
 }
 
 function handleLogout() {
   logout()
   window.location.href = '/'
+}
+
+function handleButtonHover(event: Event) {
+  const target = event.target as HTMLElement
+  if (target) {
+    target.style.backgroundColor = getPageTheme(currentPageName.value).gradient.hoverFrom
+  }
+}
+
+function handleButtonLeave(event: Event) {
+  const target = event.target as HTMLElement
+  if (target) {
+    target.style.backgroundColor = getPageTheme(currentPageName.value).primary
+  }
+}
+
+function handleAdminButtonHover(event: Event) {
+  const target = event.target as HTMLElement
+  if (target) {
+    target.style.backgroundColor = getPageTheme('traffic').gradient.hoverFrom
+  }
+}
+
+function handleAdminButtonLeave(event: Event) {
+  const target = event.target as HTMLElement
+  if (target) {
+    target.style.backgroundColor = getPageTheme('traffic').primary
+  }
 }
 
 onMounted(() => {

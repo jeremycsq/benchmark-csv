@@ -208,15 +208,13 @@ export function testTrafficMetrics(data: TrafficData[]) {
 
   const debug = debugTrafficData(data)
 
-  console.log('📊 Données de base:', {
+  console.log('🔍 DEBUG TRAFFIC METRICS - Résumé:', {
     hasData: debug.hasData,
     dataCount: debug.dataCount,
     issues: debug.issues,
   })
 
-  console.log('📋 Échantillon de données:', debug.sampleData)
-
-  console.log('🧮 Calculs détaillés:', {
+  console.log('🔍 DEBUG TRAFFIC METRICS - Calculs détaillés:', {
     mobileShare: {
       ...debug.calculations.mobileShare,
       values: debug.calculations.mobileShare.values.slice(0, 5), // Afficher seulement les 5 premières
@@ -235,7 +233,7 @@ export function testTrafficMetrics(data: TrafficData[]) {
   if (debug.issues.length > 0) {
     console.warn('⚠️ Problèmes détectés:', debug.issues)
   } else {
-    console.log('✅ Aucun problème détecté')
+    console.log('✅ Aucun problème détecté dans les données')
   }
 
   console.groupEnd()

@@ -1,20 +1,25 @@
 <template>
   <div
-    class="w-full bg-white rounded-xl shadow-sm p-6 h-auto md:w-2/3 mt-6 md:mt-0 border border-[#ECEDEF] flex flex-col gap-8 justify-center"
+    class="w-full bg-white rounded-xl shadow-sm p-6 h-auto md:w-2/3 mt-6 md:mt-0 border flex flex-col gap-8 justify-center"
+    :style="{ borderColor: theme.accent }"
   >
     <div class="flex flex-col items-center w-full mt-12">
       <PieChart
         :values="paidUnpaidPie"
         :labels="['Paid Conversion', 'Unpaid Conversion']"
-        :colors="['#626B76', '#ECEDEF']"
+        :colors="[theme.primary, theme.accent]"
       />
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, computed } from 'vue'
 import PieChart from '@/components/charts/PieChart.vue'
+import { getPageTheme } from '@/config/theme'
+
+// Thème pour les couleurs
+const theme = computed(() => getPageTheme('conversion'))
 
 const paidUnpaidPie = ref([32.3, 67.7])
 

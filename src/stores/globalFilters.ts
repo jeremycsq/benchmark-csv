@@ -35,7 +35,34 @@ export const useGlobalFiltersStore = defineStore('globalFilters', () => {
   })
 
   // Récupérer les données Supabase avec support multi-table
-  const { filterOptions, fetchTableData } = useSupabaseData()
+  const { filterOptions, fetchTableData, getTableData } = useSupabaseData()
+
+  // Fonction pour récupérer les options spécifiques à la table active
+  function getTableSpecificOptions() {
+    const tableData = getTableData(activeTable.value).value
+    if (tableData && tableData.filterOptions) {
+      // Vérifier si les options spécifiques ont des données
+      const hasData =
+        tableData.filterOptions.countries.length > 0 ||
+        tableData.filterOptions.industries.length > 0 ||
+        tableData.filterOptions.devices.length > 0 ||
+        tableData.filterOptions.analysis_months.length > 0
+
+      if (hasData) {
+        console.log(
+          `🎯 globalFilters - Options spécifiques pour ${activeTable.value}:`,
+          tableData.filterOptions,
+        )
+        return tableData.filterOptions
+      }
+    }
+
+    // Fallback vers les options globales si pas de données spécifiques ou données vides
+    console.log(
+      `⚠️ globalFilters - Pas d'options spécifiques valides pour ${activeTable.value}, utilisation des options globales`,
+    )
+    return filterOptions.value
+  }
 
   // Options pour les selects - spécifiques à la table active
   const formatMonthLabel = (v: string): string => {
@@ -51,7 +78,10 @@ export const useGlobalFiltersStore = defineStore('globalFilters', () => {
   }
 
   const monthOptions = computed(() => {
+    // Temporairement utiliser les options globales pour éviter les filtres vides
     const months = filterOptions.value.analysis_months || []
+    console.log('📅 globalFilters - Mois dans filterOptions (global):', months)
+
     return [
       { label: 'All months', value: 'All months' },
       ...months.map((month: string) => ({ label: formatMonthLabel(month), value: month })),
@@ -59,8 +89,9 @@ export const useGlobalFiltersStore = defineStore('globalFilters', () => {
   })
 
   const countryOptions = computed(() => {
+    // Temporairement utiliser les options globales pour éviter les filtres vides
     const countries = filterOptions.value.countries || []
-    console.log('🌍 globalFilters - Pays dans filterOptions:', countries)
+    console.log('🌍 globalFilters - Pays dans filterOptions (global):', countries)
 
     // Filtrer pour exclure "Global" des options affichées (car "All Countries" = "Global")
     const filteredCountries = countries.filter((country: string) => country !== 'Global')
@@ -74,7 +105,10 @@ export const useGlobalFiltersStore = defineStore('globalFilters', () => {
   })
 
   const industryOptions = computed(() => {
+    // Temporairement utiliser les options globales pour éviter les filtres vides
     const industries = filterOptions.value.industries || []
+    console.log('🏭 globalFilters - Industries dans filterOptions (global):', industries)
+
     return [
       { label: 'All Industries', value: 'All Industries' },
       ...industries.map((industry: string) => ({
@@ -85,7 +119,10 @@ export const useGlobalFiltersStore = defineStore('globalFilters', () => {
   })
 
   const deviceOptions = computed(() => {
+    // Temporairement utiliser les options globales pour éviter les filtres vides
     const devices = filterOptions.value.devices || []
+    console.log('📱 globalFilters - Devices dans filterOptions (global):', devices)
+
     let mapped = []
 
     const mapCommon = (d: string) => {
@@ -139,12 +176,22 @@ export const useGlobalFiltersStore = defineStore('globalFilters', () => {
   }
 
   // Initialiser les données selon la table active
-  function initializeData(table?: string) {
+  async function initializeData(table?: string) {
     const tableToUse = table || activeTable.value
     console.log(`globalFilters - Initialisation des données pour la table: ${tableToUse}`)
 
     // Récupérer les options spécifiques à la table active
-    fetchTableData(tableToUse)
+    await fetchTableData(tableToUse)
+
+    // Ajouter un délai pour voir les options après chargement
+    setTimeout(() => {
+      console.log(`🔄 globalFilters - Après chargement de ${tableToUse}:`)
+      console.log('🔄 filterOptions.value:', filterOptions.value)
+
+      // Vérifier les options spécifiques
+      const tableData = getTableData(tableToUse).value
+      console.log(`🔄 Options spécifiques pour ${tableToUse}:`, tableData?.filterOptions)
+    }, 1000)
   }
 
   // Réinitialiser les sélecteurs quand on change de page (table active)

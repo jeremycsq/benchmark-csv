@@ -1,11 +1,12 @@
 <template>
   <section class="bg-white relative z-50">
     <div class="max-w-7xl mx-auto px-4 pt-4 pb-1">
-      <h2 class="font-newedge text-4xl text-center mb-2" :style="{ color: pageConfig.titleColor }">
+      <h2 class="font-newedge text-4xl text-center mb-2" :style="{ color: theme.primary }">
         {{ dynamicTitle }}
       </h2>
       <p class="text-center text-gray-800 mb-8">
-        Conversion benchmarks across markets, industries, devices, and audiences.
+        Select filters to view traffic benchmarks for specific markets, industries, devices, and
+        audiences.
       </p>
       <div class="flex justify-start items-start gap-8 mb-8 w-full">
         <!-- Labels verticaux -->
@@ -23,10 +24,7 @@
         </div>
 
         <!-- Blocs metrics -->
-        <div
-          class="flex flex-col gap-8 w-full"
-          :style="{ '--border-color': pageConfig.titleColor }"
-        >
+        <div class="flex flex-col gap-8 w-full" :style="{ '--border-color': theme.accent }">
           <!-- Ligne YoY -->
           <div class="flex items-center w-full">
             <template v-for="(metric, index) in pageConfig.yoyMetrics" :key="`yoy-${index}`">
@@ -38,7 +36,7 @@
                   'border-r-gradient': index < pageConfig.yoyMetrics.length - 1,
                   'border-l-gradient': index > 0,
                 }"
-                :style="{ borderColor: pageConfig.titleColor }"
+                :style="{ borderColor: theme.accent }"
               >
                 <div
                   v-if="!isLoading"
@@ -95,14 +93,14 @@
                 <!-- Shape du haut (U inversé) -->
                 <div
                   class="w-4 h-8 border-l border-r border-b rounded-b-full bg-white z-20"
-                  :style="{ borderColor: pageConfig.titleColor }"
+                  :style="{ borderColor: theme.accent }"
                 ></div>
                 <!-- Barre de connexion horizontale -->
                 <div class="w-4 h-2 bg-white z-20"></div>
                 <!-- Shape du bas (U normal) -->
                 <div
                   class="w-4 h-8 border-l border-r border-t rounded-t-full bg-white z-20"
-                  :style="{ borderColor: pageConfig.titleColor }"
+                  :style="{ borderColor: theme.accent }"
                 ></div>
               </div>
             </template>
@@ -119,7 +117,7 @@
                   'border-r-gradient': index < pageConfig.momMetrics.length - 1,
                   'border-l-gradient': index > 0,
                 }"
-                :style="{ borderColor: pageConfig.titleColor }"
+                :style="{ borderColor: theme.accent }"
               >
                 <div
                   v-if="!isLoading"
@@ -176,14 +174,14 @@
                 <!-- Shape du haut (U inversé) -->
                 <div
                   class="w-4 h-8 border-l border-r border-b rounded-b-full bg-white z-20"
-                  :style="{ borderColor: pageConfig.titleColor }"
+                  :style="{ borderColor: theme.accent }"
                 ></div>
                 <!-- Barre de connexion horizontale -->
                 <div class="w-4 h-2 bg-white z-20"></div>
                 <!-- Shape du bas (U normal) -->
                 <div
                   class="w-4 h-8 border-l border-r border-t rounded-t-full bg-white z-20"
-                  :style="{ borderColor: pageConfig.titleColor }"
+                  :style="{ borderColor: theme.accent }"
                 ></div>
               </div>
             </template>
@@ -199,6 +197,7 @@ import { ref, computed, onMounted, watch, nextTick } from 'vue'
 import { pageConfigs } from '@/config/pageConfig'
 import { useGlobalFiltersStore } from '@/stores/globalFilters'
 import { useSupabaseData } from '@/composables/useSupabaseData'
+import { getPageTheme } from '@/config/theme'
 
 const globalFilters = useGlobalFiltersStore()
 const { fetchTableData, getFilteredDataFor } = useSupabaseData()
@@ -206,6 +205,7 @@ const { fetchTableData, getFilteredDataFor } = useSupabaseData()
 type Row = Record<string, unknown>
 
 const pageConfig = computed(() => pageConfigs.conversion)
+const theme = computed(() => getPageTheme('conversion'))
 
 const selectedMonth = computed(() => globalFilters.selectedMonth)
 
@@ -224,9 +224,9 @@ const formatMonthLabel = (value: string): string => {
 const dynamicTitle = computed(() => {
   const month = selectedMonth.value
   if (!month || month.toLowerCase() === 'all months') {
-    return 'How is your conversion rate looking this month?'
+    return 'Conversion performance overview'
   } else {
-    return `How has Conversion evolved in ${formatMonthLabel(month)}?`
+    return `Conversion performance overview in ${formatMonthLabel(month)}`
   }
 })
 
@@ -245,7 +245,8 @@ const toNum = (v: unknown): number => {
 const loadConversionMetrics = async () => {
   // Charger la table conversion en tirant parti du cache si déjà présent
   isLoading.value = true
-  const cached = (useSupabaseData().getTableData('conversion').value as unknown as Row[]) || []
+  const tableData = useSupabaseData().getTableData('conversion').value
+  const cached = (tableData?.data as unknown as Row[]) || []
   if (!cached || cached.length === 0) {
     await fetchTableData('conversion')
     await nextTick()
@@ -277,7 +278,8 @@ const loadConversionMetrics = async () => {
   let rows = getFilteredDataFor('conversion', filters).value as unknown as Row[]
   // Fallback: si filtre vide à ce moment précis, prendre toutes les lignes puis trier
   if (!rows || rows.length === 0) {
-    rows = (useSupabaseData().getTableData('conversion').value as unknown as Row[]) || []
+    const tableData = useSupabaseData().getTableData('conversion').value
+    rows = (tableData?.data as unknown as Row[]) || []
   }
   if (!rows || rows.length === 0) {
     realValues.value = { yoy: [0, 0, 0, 0], mom: [0, 0, 0, 0] }

@@ -44,11 +44,11 @@ export const pageThemes: Record<string, PageTheme> = {
     },
   },
   frustration: {
-    primary: '#3737A2',
-    secondary: '#AFAFF5',
-    tertiary: '#D5D6FB',
-    accent: '#D5D6FB',
-    background: '#F7F8FF',
+    primary: '#020249',
+    secondary: '#5252db',
+    tertiary: '#7171ff',
+    accent: '#b6b6ff',
+    background: '#e6e6ff',
     text: '#000000',
     gradient: {
       from: '#3737A2',
@@ -58,11 +58,11 @@ export const pageThemes: Record<string, PageTheme> = {
     },
   },
   conversion: {
-    primary: '#32373A',
-    secondary: '#626B76',
-    tertiary: '#32373A',
-    accent: '#ECEDEF',
-    background: '#EEEFF1',
+    primary: '#1a1c1e',
+    secondary: '#464c51',
+    tertiary: '#8d97a0',
+    accent: '#606973',
+    background: '#d7e1e1',
     text: '#000000',
     gradient: {
       from: '#32373A',
@@ -96,16 +96,16 @@ export const chartColors: Record<
     background: '#f2ffe6',
   },
   frustration: {
-    primary: '#3737A2',
-    secondary: '#AFAFF5',
-    tertiary: '#D5D6FB',
-    background: '#F7F8FF',
+    primary: '#020249',
+    secondary: '#5252db',
+    tertiary: '#7171ff',
+    background: '#e6e6ff',
   },
   conversion: {
-    primary: '#ECEDEF',
-    secondary: '#626B76',
-    tertiary: '#32373A',
-    background: '#EEEFF1',
+    primary: '#1a1c1e',
+    secondary: '#464c51',
+    tertiary: '#8d97a0',
+    background: '#d7e1e1',
   },
 }
 

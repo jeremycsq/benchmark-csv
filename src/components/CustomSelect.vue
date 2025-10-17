@@ -153,6 +153,7 @@
 <script setup lang="ts">
 import { ref, watch } from 'vue'
 import { useRoute } from 'vue-router'
+import { getPageTheme } from '@/config/theme'
 
 type IconName = 'globe' | 'tag' | 'calendar' | 'devices' | 'users'
 
@@ -180,18 +181,9 @@ watch(
 )
 
 function getCurrentPageColor(): string {
-  switch (route.path) {
-    case '/traffic':
-      return 'text-[#8D0A38]'
-    case '/engagement':
-      return 'text-[#2E614F]'
-    case '/frustration':
-      return 'text-[#3737A2]'
-    case '/conversion':
-      return 'text-[#32373A]'
-    default:
-      return 'text-[#8D0A38]'
-  }
+  const pageName = route.path.slice(1) || 'traffic'
+  const theme = getPageTheme(pageName)
+  return `color: ${theme.primary}`
 }
 
 function toggleDropdown() {

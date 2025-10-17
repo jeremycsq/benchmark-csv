@@ -95,7 +95,6 @@ export function useEngagementMetrics() {
       if (error) throw error
       rowRef.value = data && data.length > 0 ? data[0] : null
     } catch (e) {
-      console.error('loadRow engagement error:', e)
       rowRef.value = null
     }
   }
@@ -115,7 +114,7 @@ export function useEngagementMetrics() {
   // Métriques d'engagement calculées depuis la ligne sélectionnée
   const engagementMetrics = computed(() => {
     if (!rowRef.value) {
-      console.log('useEngagementMetrics - Pas de données filtrées', {
+      console.log('🔍 useEngagementMetrics - Pas de ligne sélectionnée, filtres:', {
         selectedCountry: globalFilters.selectedCountry,
         mappedCountry: mapCountryToCode(globalFilters.selectedCountry),
         selectedDevice: globalFilters.selectedDevice,
@@ -131,7 +130,6 @@ export function useEngagementMetrics() {
       }
     }
     const row = rowRef.value
-    console.log('useEngagementMetrics - Ligne sélectionnée:', row)
 
     const pageviewsPerSession = {
       value: Number(row['AVG_PAGEVIEWS_PER_SESSION'] ?? 0),

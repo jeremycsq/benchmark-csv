@@ -2,35 +2,39 @@
   <div class="flex flex-col md:flex-row mt-8 mb-12">
     <div class="w-full md:w-1/3 flex flex-col items-start gap-10 justify-center">
       <div
-        class="flex flex-row items-center justify-start gap-4 border-b border-[#ECEDEF] pb-4 w-full"
+        class="flex flex-row items-center justify-start gap-4 border-b pb-4 w-full"
+        :style="{ borderColor: theme.accent }"
       >
-        <div class="text-gray-600 font-newedge pt-1 font-medium">E-Commerce Conversion</div>
+        <div class="font-newedge pt-1 font-medium" :style="{ color: theme.text }">
+          E-Commerce Conversion
+        </div>
       </div>
     </div>
     <div
-      class="w-full bg-white rounded-xl shadow-sm p-6 h-auto md:w-2/3 mt-10 md:mt-0 border border-[#ECEDEF] flex flex-col gap-10 justify-center pt-16 pb-12"
+      class="w-full bg-white rounded-xl shadow-sm p-6 h-auto md:w-2/3 mt-10 md:mt-0 border flex flex-col gap-10 justify-center pt-16 pb-12"
+      :style="{ borderColor: theme.accent }"
     >
       <div class="flex flex-row gap-8">
         <MiniBarChart
           :values="conversionMiniBarData[0] as [number, number, number]"
-          :colors="['#ECEDEF', '#626B76', '#32373A']"
+          :colors="[theme.accent, theme.secondary, theme.primary]"
           label="Overall Conversion Rate"
           :display="(v) => v.toFixed(1) + '%'"
-          labelColor="#32373A"
+          :labelColor="theme.primary"
         />
         <MiniBarChart
           :values="conversionMiniBarData[1] as [number, number, number]"
-          :colors="['#ECEDEF', '#626B76', '#32373A']"
+          :colors="[theme.accent, theme.secondary, theme.primary]"
           label="New Visitor Conversion Rate"
           :display="(v) => v.toFixed(1) + '%'"
-          labelColor="#32373A"
+          :labelColor="theme.primary"
         />
         <MiniBarChart
           :values="conversionMiniBarData[2] as [number, number, number]"
-          :colors="['#ECEDEF', '#626B76', '#32373A']"
+          :colors="[theme.accent, theme.secondary, theme.primary]"
           label="Returning Visitor Conversion Rate"
           :display="(v) => v.toFixed(1) + '%'"
-          labelColor="#32373A"
+          :labelColor="theme.primary"
         />
       </div>
     </div>
@@ -38,8 +42,12 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, computed } from 'vue'
 import MiniBarChart from '@/components/charts/MiniBarChart.vue'
+import { getPageTheme } from '@/config/theme'
+
+// Thème pour les couleurs
+const theme = computed(() => getPageTheme('conversion'))
 
 const conversionMiniBarData = ref([
   [2.1, 3.4, 4.8],

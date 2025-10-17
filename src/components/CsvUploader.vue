@@ -137,7 +137,7 @@ const props = defineProps<{
   tableName?: string
 }>()
 
-console.log(`📝 CsvUploader monté avec tableName: "${props.tableName}"`)
+
 
 const { uploading, progress, uploadCsvFile, downloadTemplate, updateTableName } = useCsvUpload(
   props.tableName || 'traffic',
@@ -147,7 +147,7 @@ const { uploading, progress, uploadCsvFile, downloadTemplate, updateTableName } 
 watch(
   () => props.tableName,
   (newTableName) => {
-    console.log(`🔄 TableName changé vers: "${newTableName}"`)
+
     updateTableName(newTableName || 'traffic')
   },
   { immediate: true },

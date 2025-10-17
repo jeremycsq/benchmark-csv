@@ -3,15 +3,21 @@
     <!-- Colonne texte à gauche -->
     <div class="w-full md:w-1/3 flex flex-col items-start gap-4 justify-center">
       <div
-        class="flex flex-row items-center justify-start gap-4 border-b border-[#ECEDFE] pb-4 w-full"
+        class="flex flex-row items-center justify-start gap-4 border-b pb-4 w-full"
+        :style="{ borderColor: theme.accent }"
       >
-        <div class="text-[#000] font-newedge pt-1 font-medium">Core Web Vitals</div>
+        <div class="font-newedge pt-1 font-medium" :style="{ color: theme.text }">
+          LCP, CLS, INP
+        </div>
       </div>
       <p class="text-sm leading-6 pr-2" :style="{ color: descriptionColor }"></p>
     </div>
 
     <!-- Carte graphique à droite -->
-    <div class="w-full md:w-2/3 bg-white border border-[#ECEDFE] px-6 py-16 rounded-lg">
+    <div
+      class="w-full md:w-2/3 bg-white border px-6 py-16 rounded-lg"
+      :style="{ borderColor: theme.accent }"
+    >
       <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
         <MiniBarChart
           :values="lcpValues"
@@ -50,25 +56,40 @@ import { ref, watch, onMounted } from 'vue'
 import { useGlobalFiltersStore } from '@/stores/globalFilters'
 import { supabase } from '@/lib/supabase'
 import MiniBarChart from '@/components/charts/MiniBarChart.vue'
+import { getPageTheme } from '@/config/theme'
 
 const globalFilters = useGlobalFiltersStore()
 
-// Couleurs et styles matching FrustrationMetricsBenchmarks (valeurs exactes du thème)
+// Couleurs du thème frustration
+const theme = getPageTheme('frustration')
 const barColors: [string, string, string] = [
-  '#D5D6FB', // Tertiaire - Bleu/violet clair pour P25
-  '#AFAFF5', // Secondaire - Bleu/violet moyen pour Benchmark
-  '#3737A2', // Primaire - Bleu/violet foncé pour P75
+  theme.tertiary, // '#7171ff' - Bleu clair pour P25
+  theme.secondary, // '#5252db' - Bleu moyen pour Benchmark
+  theme.primary, // '#020249' - Bleu foncé pour P75
 ]
 
-const labelColor = '#97A6BA'
-const valueColor = '#000'
-const metricLabelColor = '#000'
-const descriptionColor = '#6B7280'
+const labelColor = theme.text
+const valueColor = theme.text
+const metricLabelColor = theme.text
+const descriptionColor = theme.text
 
-// Données séparées pour chaque métrique
-const lcpValues = ref<[number, number, number]>([1.8, 2.4, 3.7])
-const clsValues = ref<[number, number, number]>([0.05, 0.12, 0.18])
-const inpValues = ref<[number, number, number]>([145, 220, 340])
+// Données séparées pour chaque métrique - Utilisation des plages officielles Google
+// Format: [P25, Benchmark, P75] où Benchmark = seuil "Good" de Google
+const lcpValues = ref<[number, number, number]>([
+  1.5, // P25 - Exemple de bonne performance
+  2.5, // Benchmark - Seuil "Good" de Google (≤ 2.5s)
+  4.0, // P75 - Seuil "Poor" de Google (> 4.0s)
+])
+const clsValues = ref<[number, number, number]>([
+  0.05, // P25 - Exemple de bonne performance
+  0.1, // Benchmark - Seuil "Good" de Google (≤ 0.1)
+  0.25, // P75 - Seuil "Poor" de Google (> 0.25)
+])
+const inpValues = ref<[number, number, number]>([
+  150, // P25 - Exemple de bonne performance
+  200, // Benchmark - Seuil "Good" de Google (≤ 200ms)
+  500, // P75 - Seuil "Poor" de Google (> 500ms)
+])
 
 // Debug: vérifier que les valeurs par défaut s'affichent
 console.log('🔍 INP Valeurs par défaut:', inpValues.value)
@@ -186,7 +207,7 @@ const fetchCoreWebVitalsData = async () => {
   }
 }
 
-// Fonction de fallback avec données simulées
+// Fonction de fallback avec données simulées basées sur les plages Google
 function randomizeCoreWebVitals() {
   function randomFloat(min: number, max: number, decimals = 2) {
     return +(Math.random() * (max - min) + min).toFixed(decimals)
@@ -196,9 +217,22 @@ function randomizeCoreWebVitals() {
     return Math.round(Math.random() * (max - min) + min)
   }
 
-  lcpValues.value = [randomFloat(1.5, 2.2), randomFloat(2.2, 2.8), randomFloat(3.2, 4.2)]
-  clsValues.value = [randomFloat(0.03, 0.08), randomFloat(0.1, 0.15), randomFloat(0.15, 0.22)]
-  inpValues.value = [randomInt(120, 180), randomInt(200, 250), randomInt(300, 380)]
+  // Utilisation des plages officielles Google pour la randomisation
+  lcpValues.value = [
+    randomFloat(1.0, 2.5), // Good range
+    randomFloat(2.5, 4.0), // Needs Improvement range
+    randomFloat(4.0, 6.0), // Poor range
+  ]
+  clsValues.value = [
+    randomFloat(0.01, 0.1), // Good range
+    randomFloat(0.1, 0.25), // Needs Improvement range
+    randomFloat(0.25, 0.4), // Poor range
+  ]
+  inpValues.value = [
+    randomInt(50, 200), // Good range
+    randomInt(200, 500), // Needs Improvement range
+    randomInt(500, 800), // Poor range
+  ]
 }
 
 // Watcher pour les changements de filtres

@@ -136,11 +136,11 @@ const chartColors = computed(() => getChartColors('traffic'))
 
 // Calculer les distributions depuis les données Supabase selon les spécifications
 const deviceDistribution = computed(() => {
-  console.log('🔄 TrafficShareByTypes - deviceDistribution recalculé')
-  console.log('TrafficShareByTypes - filteredData.value.length:', filteredData.value.length)
+
+
 
   if (!filteredData.value.length) {
-    console.log('TrafficShareByTypes - Pas de données filtrées')
+
     return { desktop: 0, mobile: 0 }
   }
 
@@ -165,7 +165,7 @@ const deviceDistribution = computed(() => {
       mobile: Math.round(avgMobileShare * 100), // Convertir ratio en %
       desktop: Math.round((1 - avgMobileShare) * 100),
     }
-    console.log('✅ TrafficShareByTypes - deviceDistribution (all_devices):', result)
+
     return result
   }
 
@@ -192,15 +192,15 @@ const deviceDistribution = computed(() => {
     desktop: Math.round(((deviceCounts.desktop || 0) / total) * 100),
     mobile: Math.round(((deviceCounts.mobile || 0) / total) * 100),
   }
-  console.log('✅ TrafficShareByTypes - deviceDistribution (comptage):', result)
+
   return result
 })
 
 const visitorType = computed(() => {
-  console.log('🔄 TrafficShareByTypes - visitorType recalculé')
+
 
   if (!filteredData.value.length) {
-    console.log('TrafficShareByTypes - Pas de données pour visitorType')
+
     return { new: 0, returning: 0 }
   }
 
@@ -239,7 +239,7 @@ const visitorType = computed(() => {
       new: Math.round(avgNew * 100), // Convertir ratio en %
       returning: Math.round(avgReturning * 100),
     }
-    console.log('✅ TrafficShareByTypes - visitorType (all_devices):', result)
+
     return result
   }
 
@@ -261,15 +261,15 @@ const visitorType = computed(() => {
     new: Math.round(avgNewVisitorRate * 100), // Convertir ratio en %
     returning: Math.round(avgReturningVisitorRate * 100),
   }
-  console.log('✅ TrafficShareByTypes - visitorType (moyenne):', result)
+
   return result
 })
 
 const acquisitionSource = computed(() => {
-  console.log('🔄 TrafficShareByTypes - acquisitionSource recalculé')
+
 
   if (!filteredData.value.length) {
-    console.log('TrafficShareByTypes - Pas de données pour acquisitionSource')
+
     return { paid: 0, organic: 0 }
   }
 
@@ -296,7 +296,7 @@ const acquisitionSource = computed(() => {
       paid: Math.round(avgPaid * 100), // Convertir ratio en %
       organic: Math.round((1 - avgPaid) * 100),
     }
-    console.log('✅ TrafficShareByTypes - acquisitionSource (all_devices):', result)
+
     return result
   }
 
@@ -311,7 +311,7 @@ const acquisitionSource = computed(() => {
     paid: Math.round(avgPaidTrafficShare * 100), // Convertir ratio en %
     organic: Math.round((1 - avgPaidTrafficShare) * 100),
   }
-  console.log('✅ TrafficShareByTypes - acquisitionSource (moyenne):', result)
+
   return result
 })
 </script>

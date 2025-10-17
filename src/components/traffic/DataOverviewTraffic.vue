@@ -1,7 +1,7 @@
 <template>
   <section class="bg-white relative z-50">
     <div class="flex-1 w-full max-w-7xl mx-auto px-8 py-12 px-4 pt-4 pb-1">
-      <h2 class="font-newedge text-4xl text-center mb-2" :style="{ color: chartColors.primary }">
+      <h2 class="font-newedge text-4xl text-center mb-2" :style="{ color: theme.primary }">
         {{ dynamicTitle }}
       </h2>
       <p class="text-center text-gray-800 mb-8">
@@ -25,7 +25,7 @@
           </div>
         </div>
         <!-- Blocs metrics -->
-        <div class="flex flex-col gap-8 w-full" :style="{ '--border-color': chartColors.tertiary }">
+        <div class="flex flex-col gap-8 w-full" :style="{ '--border-color': theme.accent }">
           <!-- Ligne YoY -->
           <div class="flex items-center w-full">
             <template v-for="(metric, index) in pageConfig.yoyMetrics" :key="`yoy-${index}`">
@@ -37,7 +37,7 @@
                   'border-r-gradient': index < pageConfig.yoyMetrics.length - 1,
                   'border-l-gradient': index > 0,
                 }"
-                :style="{ borderColor: chartColors.tertiary }"
+                :style="{ borderColor: theme.accent }"
               >
                 <div
                   v-if="!isLoading"
@@ -100,14 +100,14 @@
                 <!-- Shape du haut (U inversé) -->
                 <div
                   class="w-4 h-8 border-l border-r border-b rounded-b-full bg-white z-20"
-                  :style="{ borderColor: chartColors.tertiary }"
+                  :style="{ borderColor: theme.accent }"
                 ></div>
                 <!-- Barre de connexion horizontale -->
                 <div class="w-4 h-2 bg-white z-20"></div>
                 <!-- Shape du bas (U normal) -->
                 <div
                   class="w-4 h-8 border-l border-r border-t rounded-t-full bg-white z-20"
-                  :style="{ borderColor: chartColors.tertiary }"
+                  :style="{ borderColor: theme.accent }"
                 ></div>
               </div>
             </template>
@@ -124,7 +124,7 @@
                   'border-r-gradient': index < pageConfig.momMetrics.length - 1,
                   'border-l-gradient': index > 0,
                 }"
-                :style="{ borderColor: chartColors.tertiary }"
+                :style="{ borderColor: theme.accent }"
               >
                 <div
                   v-if="!isLoading"
@@ -187,14 +187,14 @@
                 <!-- Shape du haut (U inversé) -->
                 <div
                   class="w-4 h-8 border-l border-r border-b rounded-b-full bg-white z-20"
-                  :style="{ borderColor: chartColors.tertiary }"
+                  :style="{ borderColor: theme.accent }"
                 ></div>
                 <!-- Barre de connexion horizontale -->
                 <div class="w-4 h-2 bg-white z-20"></div>
                 <!-- Shape du bas (U normal) -->
                 <div
                   class="w-4 h-8 border-l border-r border-t rounded-t-full bg-white z-20"
-                  :style="{ borderColor: chartColors.tertiary }"
+                  :style="{ borderColor: theme.accent }"
                 ></div>
               </div>
             </template>
@@ -208,7 +208,7 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import { pageConfigs, type PageMetrics } from '@/config/pageConfig'
-import { getChartColors } from '@/config/theme'
+import { getChartColors, getPageTheme } from '@/config/theme'
 import { useGlobalFiltersStore } from '@/stores/globalFilters'
 import { useTrafficMetrics } from '@/composables/useTrafficMetrics'
 
@@ -229,6 +229,7 @@ const pageConfig = computed<PageMetrics>(() => {
 })
 
 const chartColors = computed(() => getChartColors('traffic'))
+const theme = computed(() => getPageTheme('traffic'))
 
 const selectedMonth = computed(() => globalFilters.selectedMonth)
 

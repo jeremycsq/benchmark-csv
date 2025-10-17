@@ -6,7 +6,7 @@
           <span class="text-xs text-[#000]">{{ item.label }}</span>
           <span
             v-if="item.type"
-            class="px-2 rounded-full text-xs font-medium"
+            class="px-2 rounded text-xs font-medium"
             :style="badgeStyle(item.type)"
           >
             {{ item.type }}
@@ -15,13 +15,10 @@
         <span class="text-xs text-[#000]">{{ item.value.toFixed(2) }}%</span>
       </div>
       <div
-        class="relative w-full mt-2 h-4 rounded-full overflow-hidden"
+        class="relative w-full mt-2 h-5 rounded overflow-hidden"
         :style="{ background: bgColor }"
       >
-        <div
-          class="absolute left-0 top-0 h-4 rounded-full flex items-center"
-          :style="barStyle(item)"
-        ></div>
+        <div class="absolute left-0 top-0 h-5 flex items-center" :style="barStyle(item)"></div>
       </div>
     </div>
   </div>

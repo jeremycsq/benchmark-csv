@@ -13,7 +13,6 @@ export interface CsvUploadResult {
 }
 
 export function useCsvUpload(tableName: string = 'traffic') {
-  console.log(`🎲 useCsvUpload initialisé avec tableName: "${tableName}"`)
   const uploading = ref(false)
   const progress = ref(0)
   const { insertData } = useSupabaseData()
@@ -48,18 +47,14 @@ export function useCsvUpload(tableName: string = 'traffic') {
     csvData: Record<string, unknown>[],
   ): { valid: GenericData[]; errors: string[] } => {
     const currentTableName = dynamicTableName.value
-    console.log(`🎯 Validation appelée avec tableName="${currentTableName}"`)
+
     if (currentTableName === 'frustration') {
-      console.log('✅ Utilisant validateAndTransformFrustrationData')
       return validateAndTransformFrustrationData(csvData)
     } else if (currentTableName === 'engagement') {
-      console.log('✅ Utilisant validateAndTransformEngagementData')
       return validateAndTransformEngagementData(csvData)
     } else if (currentTableName === 'conversion') {
-      console.log('✅ Utilisant validateAndTransformConversionData')
       return validateAndTransformConversionData(csvData)
     } else {
-      console.log('⚠️ Fallback sur validateAndTransformTrafficData')
       return validateAndTransformTrafficData(csvData)
     }
   }
@@ -179,8 +174,6 @@ export function useCsvUpload(tableName: string = 'traffic') {
       try {
         // Debug: afficher les données reçues (seulement les 3 premières lignes)
         if (index < 3) {
-          console.log(`Ligne ${index + 2}:`, row)
-          console.log(`Clés disponibles:`, Object.keys(row))
         }
 
         // Normaliser la ligne pour accepter différents schémas (MAJUSCULES, alias)
@@ -207,7 +200,6 @@ export function useCsvUpload(tableName: string = 'traffic') {
             value === '' ||
             (typeof value === 'string' && value.trim() === '')
           if (isMissing && index < 3) {
-            console.log(`Champ manquant: ${field}, valeur:`, value)
           }
           return isMissing
         })
@@ -315,7 +307,6 @@ export function useCsvUpload(tableName: string = 'traffic') {
   const validateAndTransformFrustrationData = (
     csvData: Record<string, unknown>[],
   ): { valid: GenericData[]; errors: string[] } => {
-    console.log('😤 validateAndTransformFrustrationData appelée')
     const valid: GenericData[] = []
     const errors: string[] = []
 
@@ -323,7 +314,7 @@ export function useCsvUpload(tableName: string = 'traffic') {
       try {
         // Debug: afficher les premières lignes brutes pour identifier le problème
         if (index < 2) {
-          console.log(`🔍 LIGNE BRUTE ${index + 2}:`, {
+          console.log(`🔍 useCsvUpload - Ligne ${index} (frustration):`, {
             bounce_rate: row.bounce_rate,
             js_error_rate: row.js_error_rate,
             load_time_frustration_rate: row.load_time_frustration_rate,
@@ -343,8 +334,6 @@ export function useCsvUpload(tableName: string = 'traffic') {
           return
         }
 
-        console.log(`✅ Ligne ${index + 2} validée pour frustration`)
-
         // Préparer les données pour insertion (conversion des types)
         const transformedData: GenericData = { ...row }
 
@@ -360,9 +349,7 @@ export function useCsvUpload(tableName: string = 'traffic') {
           if (transformedData[field] && typeof transformedData[field] === 'string') {
             try {
               transformedData[field] = JSON.parse(transformedData[field] as string)
-            } catch {
-              console.warn(`Invalid JSON in ${field}:`, transformedData[field])
-            }
+            } catch {}
           }
         })
 
@@ -450,7 +437,6 @@ export function useCsvUpload(tableName: string = 'traffic') {
 
               // Log pour debug les premières lignes - TOUS les champs problématiques
               if (index < 2) {
-                console.log(`🔧 ${field}: ${String(row[field])} → ${transformedData[field]}`)
               }
             }
           }
@@ -480,11 +466,11 @@ export function useCsvUpload(tableName: string = 'traffic') {
         })
 
         if (problematicFields.length > 0) {
-          console.error(`❌ Ligne ${index + 2} a encore des problèmes:`, problematicFields)
+          console.warn(`⚠️ useCsvUpload - Champs problématiques ligne ${index}:`, problematicFields)
         }
 
         if (index < 3) {
-          console.log(`🔍 Ligne ${index + 2} transformée:`, {
+          console.log(`🔍 useCsvUpload - Données transformées ligne ${index}:`, {
             frustration_score: transformedData.frustration_score,
             bounce_rate: transformedData.bounce_rate,
             avg_lcp: transformedData.avg_lcp,
@@ -504,7 +490,6 @@ export function useCsvUpload(tableName: string = 'traffic') {
   const validateAndTransformEngagementData = (
     csvData: Record<string, unknown>[],
   ): { valid: GenericData[]; errors: string[] } => {
-    console.log('📈 validateAndTransformEngagementData appelée')
     const valid: GenericData[] = []
     const errors: string[] = []
 
@@ -513,7 +498,6 @@ export function useCsvUpload(tableName: string = 'traffic') {
     csvData.forEach((row, index) => {
       try {
         if (index < 2) {
-          console.log(`🧪 LIGNE ENGAGEMENT ${index + 2}:`, row)
         }
 
         // Vérifier quelques colonnes minimales
@@ -544,7 +528,6 @@ export function useCsvUpload(tableName: string = 'traffic') {
   const validateAndTransformConversionData = (
     csvData: Record<string, unknown>[],
   ): { valid: GenericData[]; errors: string[] } => {
-    console.log('🛒 validateAndTransformConversionData appelée')
     const valid: GenericData[] = []
     const errors: string[] = []
 
@@ -553,8 +536,6 @@ export function useCsvUpload(tableName: string = 'traffic') {
     csvData.forEach((row, index) => {
       try {
         if (index < 3) {
-          console.log(`🧪 LIGNE CONVERSION ${index + 2}:`, row)
-          console.log('Clés disponibles:', Object.keys(row))
         }
 
         // Vérifier quelques colonnes minimales
@@ -591,8 +572,6 @@ export function useCsvUpload(tableName: string = 'traffic') {
   const resolveIdConflicts = async (
     csvData: Record<string, unknown>[],
   ): Promise<Record<string, unknown>[]> => {
-    console.log("🔍 Vérification des conflits d'ID...")
-
     // Récupérer tous les ID existants
     const currentTableName = dynamicTableName.value
     const { data: existingData } = await supabase
@@ -606,8 +585,6 @@ export function useCsvUpload(tableName: string = 'traffic') {
       maxExistingId = existingData[0].id || 0
     }
 
-    console.log(`📊 ID maximum existant: ${maxExistingId}`)
-
     // Traiter chaque ligne pour résoudre les conflits d'ID
     const resolvedData = csvData.map((row, index) => {
       const csvId = row.id ? parseInt(String(row.id)) : null
@@ -615,16 +592,16 @@ export function useCsvUpload(tableName: string = 'traffic') {
       if (csvId && csvId <= maxExistingId) {
         // ID en conflit, on l'incrémente
         const newId = maxExistingId + index + 1
-        console.log(`🔄 Ligne ${index + 2}: ID ${csvId} → ${newId} (conflit résolu)`)
+
         return { ...row, id: newId }
       } else if (csvId && csvId > maxExistingId) {
         // ID valide, on le garde
-        console.log(`✅ Ligne ${index + 2}: ID ${csvId} (valide)`)
+
         return row
       } else {
         // Pas d'ID, on en génère un
         const newId = maxExistingId + index + 1
-        console.log(`🆕 Ligne ${index + 2}: ID généré ${newId}`)
+
         return { ...row, id: newId }
       }
     })
@@ -635,31 +612,26 @@ export function useCsvUpload(tableName: string = 'traffic') {
   // Upload du fichier CSV
   const uploadCsvFile = async (file: File): Promise<CsvUploadResult> => {
     try {
-      console.log(`🚀 Début upload CSV pour table "${tableName}"`)
       uploading.value = true
       progress.value = 0
 
       // Étape 1: Parsing le CSV
       progress.value = 20
-      console.log('📄 Parsing CSV...')
+
       const csvData = await parseCsvFile(file)
-      console.log(`📊 CSV parsé: ${csvData.length} lignes`)
 
       const currentTableName = dynamicTableName.value
       // Étape 2: Résoudre les conflits d'ID (uniquement pour les tables avec ID)
       progress.value = 40
       let resolvedData: Record<string, unknown>[] = csvData
       if (currentTableName !== 'engagement') {
-        console.log('🔍 Résolution conflits ID...')
         resolvedData = await resolveIdConflicts(csvData)
-        console.log(`✅ Conflits résolus: ${resolvedData.length} lignes`)
       } else {
-        console.log("⏭️ Pas de gestion d'ID pour engagement (pas de colonne id)")
       }
 
       // Étape 3: Valider et transformer
       progress.value = 60
-      console.log('✓ Validation et transformation...')
+
       const { valid, errors } = validateAndTransformData(resolvedData)
 
       console.log(
@@ -689,21 +661,18 @@ export function useCsvUpload(tableName: string = 'traffic') {
       const batchSize = 100
       let totalInserted = 0
 
-      console.log(`💾 Insertion en base: ${valid.length} enregistrements`)
-
       if (
         currentTableName === 'frustration' ||
         currentTableName === 'engagement' ||
         currentTableName === 'conversion'
       ) {
         // Insertion directe pour frustration
-        console.log(`🎯 Mode ${currentTableName}: insertion directe`)
+
         for (let i = 0; i < valid.length; i += batchSize) {
           const batch = valid.slice(i, i + batchSize)
-          console.log(`📦 Lot ${Math.floor(i / batchSize) + 1}: ${batch.length} items`)
+
           const { error } = await supabase.from(currentTableName).insert(batch)
           if (error) {
-            console.error('❌ Erreur insertion batch:', error)
             throw error
           }
           totalInserted += batch.length
@@ -728,8 +697,6 @@ export function useCsvUpload(tableName: string = 'traffic') {
         errors: [],
       }
     } catch (error) {
-      console.error('🚨 Erreur détaillée upload:', error)
-      console.error('🚨 Stack trace:', error instanceof Error ? error.stack : 'No stack')
       return {
         success: false,
         message: error instanceof Error ? error.message : "Erreur lors de l'upload",
@@ -839,7 +806,6 @@ export function useCsvUpload(tableName: string = 'traffic') {
   }
 
   const updateTableName = (newTableName: string) => {
-    console.log(`🔄 updateTableName: "${dynamicTableName.value}" → "${newTableName}"`)
     dynamicTableName.value = newTableName
   }
 

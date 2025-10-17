@@ -63,7 +63,7 @@ export function useFrustrationMetrics() {
       if (error) throw error
       return data && data.length > 0 ? data[0] : null
     } catch (e) {
-      console.error('fetchRow frustration error:', e)
+
       return null
     }
   }

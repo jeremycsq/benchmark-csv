@@ -99,6 +99,16 @@ const createChart = () => {
               const formatted = formatWithMaxDecimals(value, 2)
               return `${label}: ${formatted}${suffix}`
             },
+            labelColor: (context) => {
+              // Forcer l'utilisation exacte de la couleur du dataset
+              const borderColor = context.dataset.borderColor as string
+              return {
+                borderColor: borderColor || '#000000',
+                backgroundColor: borderColor || '#000000',
+                borderWidth: 1,
+                borderRadius: 1,
+              }
+            },
           },
         },
         datalabels: {

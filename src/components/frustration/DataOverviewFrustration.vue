@@ -1,7 +1,7 @@
 <template>
   <section class="bg-white relative z-50">
     <div class="max-w-7xl mx-auto px-4 pt-4 pb-1">
-      <h2 class="font-newedge text-4xl text-center mb-2" style="color: #3737a2 !important">
+      <h2 class="font-newedge text-4xl text-center mb-2" :style="{ color: theme.primary }">
         {{ dynamicTitle }}
       </h2>
       <p class="text-center text-gray-800 mb-8">
@@ -23,10 +23,7 @@
           </div>
         </div>
         <!-- Blocs metrics -->
-        <div
-          class="flex flex-col gap-8 w-full"
-          :style="{ '--border-color': pageConfig.titleColor }"
-        >
+        <div class="flex flex-col gap-8 w-full" :style="{ '--border-color': theme.accent }">
           <!-- Ligne YoY -->
           <div class="flex items-center w-full">
             <template v-for="(metric, index) in pageConfig.yoyMetrics" :key="`yoy-${index}`">
@@ -38,7 +35,7 @@
                   'border-r-gradient': index < pageConfig.yoyMetrics.length - 1,
                   'border-l-gradient': index > 0,
                 }"
-                :style="{ borderColor: pageConfig.titleColor }"
+                :style="{ borderColor: theme.accent }"
               >
                 <div
                   v-if="!isLoading"
@@ -95,14 +92,14 @@
                 <!-- Shape du haut (U inversé) -->
                 <div
                   class="w-4 h-8 border-l border-r border-b rounded-b-full bg-white z-20"
-                  :style="{ borderColor: pageConfig.titleColor }"
+                  :style="{ borderColor: theme.accent }"
                 ></div>
                 <!-- Barre de connexion horizontale -->
                 <div class="w-4 h-2 bg-white z-20"></div>
                 <!-- Shape du bas (U normal) -->
                 <div
                   class="w-4 h-8 border-l border-r border-t rounded-t-full bg-white z-20"
-                  :style="{ borderColor: pageConfig.titleColor }"
+                  :style="{ borderColor: theme.accent }"
                 ></div>
               </div>
             </template>
@@ -119,7 +116,7 @@
                   'border-r-gradient': index < pageConfig.momMetrics.length - 1,
                   'border-l-gradient': index > 0,
                 }"
-                :style="{ borderColor: pageConfig.titleColor }"
+                :style="{ borderColor: theme.accent }"
               >
                 <div
                   v-if="!isLoading"
@@ -176,14 +173,14 @@
                 <!-- Shape du haut (U inversé) -->
                 <div
                   class="w-4 h-8 border-l border-r border-b rounded-b-full bg-white z-20"
-                  :style="{ borderColor: pageConfig.titleColor }"
+                  :style="{ borderColor: theme.accent }"
                 ></div>
                 <!-- Barre de connexion horizontale -->
                 <div class="w-4 h-2 bg-white z-20"></div>
                 <!-- Shape du bas (U normal) -->
                 <div
                   class="w-4 h-8 border-l border-r border-t rounded-t-full bg-white z-20"
-                  :style="{ borderColor: pageConfig.titleColor }"
+                  :style="{ borderColor: theme.accent }"
                 ></div>
               </div>
             </template>
@@ -199,6 +196,7 @@ import { ref, computed, onMounted, watch } from 'vue'
 import { pageConfigs } from '@/config/pageConfig'
 import { useGlobalFiltersStore } from '@/stores/globalFilters'
 import { useFrustrationMetrics } from '@/composables/useFrustrationMetrics'
+import { getPageTheme } from '@/config/theme'
 
 interface Props {
   pageType: string
@@ -212,6 +210,7 @@ const { getMetrics } = useFrustrationMetrics()
 const isLoading = ref(true)
 
 const pageConfig = computed(() => pageConfigs.frustration)
+const theme = computed(() => getPageTheme('frustration'))
 
 const selectedMonth = computed(() => globalFilters.selectedMonth)
 

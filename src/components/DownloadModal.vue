@@ -2,7 +2,7 @@
   <div v-if="open" class="fixed inset-0 z-[9999] flex items-center justify-center bg-black/30">
     <div class="bg-white rounded-xl shadow-lg p-6 min-w-[320px] max-w-[90vw]">
       <div class="flex items-center justify-between mb-4">
-        <h3 class="text-lg font-semibold">{{ title || 'Download sections' }}</h3>
+        <h3 class="text-lg font-semibold">{{ modalTitle }}</h3>
         <button @click="$emit('close')" class="text-gray-400 hover:text-gray-700 text-xl">×</button>
       </div>
       <div class="mb-4">
@@ -39,17 +39,35 @@
 <script setup lang="ts">
 import { ref, watch, computed, defineEmits, defineProps } from 'vue'
 import { getPageTheme } from '@/config/theme'
+import { usePageComponents } from '@/composables/usePageComponents'
 
 const props = defineProps<{
   open: boolean
-  sections: { label: string; value: string }[]
+  sections?: { label: string; value: string }[] // Rendre optionnel car on va utiliser les composants détectés
   title?: string
   theme?: 'traffic' | 'engagement' | 'frustration' | 'conversion'
 }>()
 
 const emit = defineEmits(['close', 'confirm'])
 
+const { currentPageComponents, currentPageTitle, currentPageTheme } = usePageComponents()
+
 const selectedSections = ref<string[]>([])
+
+// Utiliser les composants détectés automatiquement ou les sections passées en props
+const sections = computed(() => {
+  return props.sections && props.sections.length > 0 ? props.sections : currentPageComponents.value
+})
+
+// Utiliser le titre de la page détecté automatiquement ou celui passé en props
+const modalTitle = computed(() => {
+  return props.title || `${currentPageTitle.value} - Download Sections`
+})
+
+// Utiliser le thème de la page détecté automatiquement ou celui passé en props
+const pageTheme = computed(() => {
+  return props.theme || currentPageTheme.value
+})
 
 watch(
   () => props.open,
@@ -68,7 +86,7 @@ const confirmBtnClass = computed(() => {
 })
 
 const confirmBtnStyle = computed(() => {
-  const theme = getPageTheme(props.theme || 'traffic')
+  const theme = getPageTheme(pageTheme.value)
   return {
     backgroundColor: theme.primary,
   }
@@ -79,7 +97,7 @@ const checkboxClass = computed(() => {
 })
 
 const checkboxStyle = computed(() => {
-  const theme = getPageTheme(props.theme || 'traffic')
+  const theme = getPageTheme(pageTheme.value)
   return {
     accentColor: theme.primary,
   }
@@ -92,7 +110,7 @@ const cancelBtnClass = computed(() => {
 })
 
 const cancelBtnStyle = computed(() => {
-  const theme = getPageTheme(props.theme || 'traffic')
+  const theme = getPageTheme(pageTheme.value)
   return {
     backgroundColor: 'transparent',
     color: theme.primary,

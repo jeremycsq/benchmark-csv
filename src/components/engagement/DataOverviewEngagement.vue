@@ -23,7 +23,7 @@
           </div>
         </div>
         <!-- Blocs metrics -->
-        <div class="flex flex-col gap-8 w-full" :style="{ '--border-color': theme.primary }">
+        <div class="flex flex-col gap-8 w-full" :style="{ '--border-color': theme.accent }">
           <!-- Ligne YoY -->
           <div class="flex items-center w-full">
             <template v-for="(metric, index) in pageConfig.yoyMetrics" :key="`yoy-${index}`">
@@ -35,7 +35,7 @@
                   'border-r-gradient': index < pageConfig.yoyMetrics.length - 1,
                   'border-l-gradient': index > 0,
                 }"
-                :style="{ borderColor: theme.primary }"
+                :style="{ borderColor: theme.accent }"
               >
                 <div
                   v-if="!isLoading"
@@ -98,14 +98,14 @@
                 <!-- Shape du haut (U inversé) -->
                 <div
                   class="w-4 h-8 border-l border-r border-b rounded-b-full bg-white z-20"
-                  :style="{ borderColor: theme.primary }"
+                  :style="{ borderColor: theme.accent }"
                 ></div>
                 <!-- Barre de connexion horizontale -->
                 <div class="w-4 h-2 bg-white z-20"></div>
                 <!-- Shape du bas (U normal) -->
                 <div
                   class="w-4 h-8 border-l border-r border-t rounded-t-full bg-white z-20"
-                  :style="{ borderColor: theme.primary }"
+                  :style="{ borderColor: theme.accent }"
                 ></div>
               </div>
             </template>
@@ -122,7 +122,7 @@
                   'border-r-gradient': index < pageConfig.momMetrics.length - 1,
                   'border-l-gradient': index > 0,
                 }"
-                :style="{ borderColor: theme.primary }"
+                :style="{ borderColor: theme.accent }"
               >
                 <div
                   v-if="!isLoading"
@@ -185,14 +185,14 @@
                 <!-- Shape du haut (U inversé) -->
                 <div
                   class="w-4 h-8 border-l border-r border-b rounded-b-full bg-white z-20"
-                  :style="{ borderColor: theme.primary }"
+                  :style="{ borderColor: theme.accent }"
                 ></div>
                 <!-- Barre de connexion horizontale -->
                 <div class="w-4 h-2 bg-white z-20"></div>
                 <!-- Shape du bas (U normal) -->
                 <div
                   class="w-4 h-8 border-l border-r border-t rounded-t-full bg-white z-20"
-                  :style="{ borderColor: theme.primary }"
+                  :style="{ borderColor: theme.accent }"
                 ></div>
               </div>
             </template>

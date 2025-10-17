@@ -63,12 +63,12 @@ const chartColors = computed(() => getChartColors('traffic'))
 
 // Calculer la distribution des devices en pourcentages
 const deviceDistribution = computed(() => {
-  console.log('🔄 TrafficOverview - deviceDistribution recalculé')
-  console.log('TrafficOverview - filteredData.value.length:', filteredData.value.length)
-  console.log('TrafficOverview - filteredData.value:', filteredData.value)
+
+
+
 
   if (!filteredData.value.length) {
-    console.log('TrafficOverview - Pas de données filtrées')
+
     return { desktop: 0, mobile: 0 }
   }
 
@@ -92,7 +92,7 @@ const deviceDistribution = computed(() => {
       desktop: Math.round((1 - avgMobile) * 100),
       mobile: Math.round(avgMobile * 100),
     }
-    console.log('✅ TrafficOverview - Résultat (all_devices):', result)
+
     return result
   }
 
@@ -100,8 +100,8 @@ const deviceDistribution = computed(() => {
   const deviceValues = [
     ...new Set(filteredData.value.map((item: Record<string, unknown>) => item.device)),
   ]
-  console.log('TrafficOverview - Valeurs de device trouvées:', deviceValues)
-  console.log('TrafficOverview - Première ligne de données:', filteredData.value[0])
+
+
 
   // Compter le nombre total d'entrées par device
   const deviceCounts = filteredData.value.reduce(
@@ -117,10 +117,10 @@ const deviceDistribution = computed(() => {
     {},
   )
 
-  console.log('TrafficOverview - Comptes par device:', deviceCounts)
+
 
   const total = (deviceCounts.desktop || 0) + (deviceCounts.mobile || 0)
-  console.log('TrafficOverview - Total:', total)
+
 
   if (total === 0) {
     return { desktop: 0, mobile: 0 }
@@ -131,7 +131,7 @@ const deviceDistribution = computed(() => {
     mobile: Math.round(((deviceCounts.mobile || 0) / total) * 100),
   }
 
-  console.log('✅ TrafficOverview - Résultat final:', result)
+
   return result
 })
 </script>

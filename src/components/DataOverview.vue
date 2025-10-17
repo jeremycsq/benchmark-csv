@@ -242,7 +242,7 @@ const fetchTrafficData = async () => {
   if (props.pageType !== 'traffic') return
 
   try {
-    console.log('📊 Récupération des données traffic pour DataOverview...')
+
 
     let query = supabase
       .from('traffic')
@@ -267,14 +267,14 @@ const fetchTrafficData = async () => {
     const { data, error } = await query
 
     if (error) {
-      console.error('❌ Erreur lors de la récupération des données traffic:', error)
+
       return
     }
 
     trafficData.value = data || []
-    console.log('✅ Données traffic récupérées:', data?.length || 0, 'enregistrements')
+
   } catch (error) {
-    console.error('❌ Erreur lors de la récupération des données traffic:', error)
+
   }
 }
 
@@ -283,7 +283,7 @@ const fetchFrustrationData = async () => {
   if (props.pageType !== 'frustration') return
 
   try {
-    console.log('📊 Récupération des données frustration pour DataOverview...')
+
 
     let query = supabase
       .from('frustration')
@@ -310,14 +310,14 @@ const fetchFrustrationData = async () => {
     const { data, error } = await query
 
     if (error) {
-      console.error('❌ Erreur lors de la récupération des données frustration:', error)
+
       return
     }
 
     frustrationData.value = data || []
-    console.log('✅ Données frustration récupérées:', data?.length || 0, 'enregistrements')
+
   } catch (error) {
-    console.error('❌ Erreur lors de la récupération des données frustration:', error)
+
   }
 }
 

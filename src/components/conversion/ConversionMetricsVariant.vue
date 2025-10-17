@@ -1,14 +1,24 @@
 <template>
   <div
-    class="w-full bg-white rounded-xl pt-16 pb-12 shadow-sm p-6 h-auto md:w-2/3 mt-6 md:mt-0 border border-[#ECEDEF] flex flex-row gap-8 justify-center"
+    class="w-full bg-white rounded-xl pt-16 pb-12 shadow-sm p-6 h-auto md:w-2/3 mt-6 md:mt-0 border flex flex-row gap-8 justify-center"
+    :style="{ borderColor: theme.accent }"
   >
-    <MiniBarChart variant="conversionMetrics" :variantValues="conversionMetricsVariantValues" />
+    <MiniBarChart
+      variant="conversionMetrics"
+      :variantValues="conversionMetricsVariantValues"
+      :colors="[theme.accent, theme.secondary, theme.primary]"
+      :labelColor="theme.text"
+    />
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, computed } from 'vue'
 import MiniBarChart from '@/components/charts/MiniBarChart.vue'
+import { getPageTheme } from '@/config/theme'
+
+// Thème pour les couleurs
+const theme = computed(() => getPageTheme('conversion'))
 
 const conversionMetricsVariantValues = ref<
   [[number, number, number], [number, number, number], [number, number, number]]

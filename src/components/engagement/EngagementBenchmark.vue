@@ -180,7 +180,7 @@ async function fetchBenchmark() {
       display: (v: number) => v.toFixed(1) + '%',
     }
   } catch (e) {
-    console.error('fetchBenchmark engagement error:', e)
+
   }
 }
 

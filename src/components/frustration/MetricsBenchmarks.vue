@@ -130,7 +130,7 @@ async function fetchBenchmarks() {
 
   const { data, error } = await query
   if (error) {
-    console.error('MetricsBenchmarks - Erreur récupération:', error)
+
     return
   }
 

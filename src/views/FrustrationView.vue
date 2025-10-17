@@ -10,11 +10,11 @@
     />
 
     <!-- Section Overview avec métriques principales -->
-    <section class="bg-[#F7F8FF] reveal-up">
+    <section class="reveal-up">
       <div class="max-w-7xl mx-auto px-8 py-12">
         <div class="flex flex-col md:flex-row md:items-center md:justify-between mb-4">
           <div class="flex flex-col">
-            <h3 class="text-3xl font-newedge text-[#3737A2]">Frustration</h3>
+            <h3 class="text-3xl font-newedge" :style="{ color: theme.primary }">Frustration</h3>
             <span class="text-gray-600 font-normal pt-1"
               >Compare performance with benchmarks from
               <strong>{{ globalFilters.selectedIndustry?.toLowerCase() }}</strong>
@@ -23,7 +23,8 @@
         </div>
 
         <span
-          class="bg-[#D5D6FB] text-[#3737A2] px-2 py-1 rounded-xl text-sm font-semibold mt-4 inline-block"
+          class="px-2 py-1 rounded text-sm font-semibold mt-4 inline-block"
+          :style="{ backgroundColor: theme.background, color: theme.primary }"
           >Frustration Change Over Time</span
         >
 
@@ -31,14 +32,16 @@
         <FrustrationChangeOverTime ref="changeOverTimeRef" />
 
         <span
-          class="bg-[#D5D6FB] text-[#3737A2] px-2 py-1 rounded-xl text-sm font-semibold mt-4 inline-block"
+          class="px-2 py-1 rounded text-sm font-semibold mt-4 inline-block"
+          :style="{ backgroundColor: theme.background, color: theme.primary }"
           >Frustration Metrics Benchmarks</span
         >
 
         <FrustrationMetricsBenchmarks ref="metricsBenchmarksRef" />
 
         <span
-          class="bg-[#D5D6FB] text-[#3737A2] px-2 py-1 rounded-xl text-sm font-semibold mt-4 inline-block"
+          class="px-2 py-1 rounded text-sm font-semibold mt-4 inline-block"
+          :style="{ backgroundColor: theme.background, color: theme.primary }"
           >Core Web Vitals</span
         >
 
@@ -52,10 +55,11 @@
 <script setup lang="ts">
 import { DataOverviewFrustration } from '@/components/frustration'
 import { useScrollReveal } from '@/composables/useScrollReveal'
-import { ref, watch, onMounted } from 'vue'
+import { ref, watch, onMounted, computed } from 'vue'
 import { useRoute } from 'vue-router'
 import { useGlobalFiltersStore } from '@/stores/globalFilters'
 import { useFrustrationDataStore } from '@/stores/frustrationData'
+import { getPageTheme } from '@/config/theme'
 import {
   FrustrationChangeOverTime,
   FrustrationMetricsBenchmarks,
@@ -65,6 +69,9 @@ import {
 const route = useRoute()
 const frustrationStore = useFrustrationDataStore()
 const globalFilters = useGlobalFiltersStore()
+
+// Thème pour les couleurs
+const theme = computed(() => getPageTheme('frustration'))
 
 // Refs pour les composants enfants
 const dataOverviewRef = ref()

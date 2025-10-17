@@ -2,12 +2,18 @@
   <div class="flex flex-col md:flex-row mt-8 reveal-up">
     <div class="w-full md:w-1/3 flex flex-col items-start gap-4 justify-center">
       <div
-        class="flex flex-row items-center justify-start gap-4 border-b border-[#ECEDFE] pb-4 w-full"
+        class="flex flex-row items-center justify-start gap-4 border-b pb-4 w-full"
+        :style="{ borderColor: theme.accent }"
       >
-        <div class="text-[#000] font-newedge pt-1 font-medium">Main KPIs overviews</div>
+        <div class="font-newedge pt-1 font-medium" :style="{ color: theme.text }">
+          Main KPIs overviews
+        </div>
       </div>
     </div>
-    <div class="w-full md:w-2/3 bg-white border border-[#ECEDFE] p-6 rounded-lg">
+    <div
+      class="w-full md:w-2/3 bg-white border p-6 rounded-lg"
+      :style="{ borderColor: theme.accent }"
+    >
       <div class="w-full h-60">
         <LineChart
           :data="chartData"
@@ -15,13 +21,13 @@
           :yMax="chartYBounds.yMax"
           :yStep="chartYBounds.yStep"
           yTickSuffix="%"
-          :labelColor="'#C3C4F8'"
-          :gridColor="'#F5F5FF'"
+          :labelColor="theme.text"
+          :gridColor="theme.background"
           :xTickFormatter="formatMonthTicks"
         />
       </div>
       <!-- Légende comme dans Traffic YoY Change -->
-      <div class="flex items-center gap-6 mt-2 text-xs" style="color: #3737a2">
+      <div class="flex items-center gap-6 mt-2 text-xs" :style="{ color: theme.primary }">
         <div class="flex items-center gap-2">
           <span
             class="inline-block w-3 h-3 rounded-full"
@@ -53,16 +59,25 @@ import { ref, watch, onMounted } from 'vue'
 import LineChart from '@/components/charts/LineChart.vue'
 import { useGlobalFiltersStore } from '@/stores/globalFilters'
 import { supabase } from '@/lib/supabase'
-import { getChartColors } from '@/config/theme'
+import { getPageTheme } from '@/config/theme'
 
 const globalFilters = useGlobalFiltersStore()
 
 // Couleurs du thème frustration
+const theme = getPageTheme('frustration')
 const frustrationColors = [
-  getChartColors('frustration').primary, // Orange principal
-  getChartColors('frustration').secondary, // Orange secondaire
-  getChartColors('frustration').tertiary, // Orange tertiaire
+  theme.primary, // '#020249' - Bleu très foncé
+  theme.secondary, // '#5252db' - Bleu moyen
+  theme.background, // '#7171ff' - Bleu clair
 ]
+
+// Debug: vérifier les couleurs utilisées
+console.log('🎨 FrustrationChangeOverTime - Couleurs du thème:', {
+  primary: theme.primary,
+  secondary: theme.secondary,
+  tertiary: theme.background,
+  frustrationColors,
+})
 
 // Titre du graphique (utilisé pour référence future si nécessaire)
 // const chartTitle = 'Frustration Metrics MoM Change Trends'

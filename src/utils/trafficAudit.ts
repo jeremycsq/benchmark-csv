@@ -53,9 +53,8 @@ export function logTrafficAudit(context: string, data: TrafficData[]) {
   const report = auditTrafficData(data)
 
   console.group(`🧪 Traffic Audit: ${context}`)
-  console.log('Counts:', report.counts)
+
   console.table(report.fields)
-  if (report.notes.length) console.warn('Notes:', report.notes)
 
   console.groupEnd()
   return report

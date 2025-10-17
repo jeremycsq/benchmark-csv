@@ -2,24 +2,31 @@
   <div class="flex flex-col md:flex-row mt-8 reveal-up mb-4">
     <div class="w-full md:w-1/3 flex flex-col items-start gap-4 justify-center">
       <div
-        class="flex flex-row items-center justify-start gap-4 border-b border-[#E9F5E4] pb-4 w-full"
+        class="flex flex-row items-center justify-start gap-4 border-b pb-4 w-full"
+        :style="{ borderBottom: `1px solid ${theme.accent}` }"
       >
-        <div class="h-2 w-8 rounded bg-[#C1E3B1]"></div>
-        <div class="text-[#000000] font-newedge pt-1 font-medium">Pageviews Per Session</div>
+        <div class="h-2 w-8 rounded" :style="{ backgroundColor: theme.primary }"></div>
+        <div class="font-newedge pt-1 font-medium" :style="{ color: theme.text }">
+          Pageviews Per Session
+        </div>
       </div>
       <div
-        class="flex flex-row items-center justify-start gap-4 border-b border-[#E9F5E4] pb-4 w-full"
+        class="flex flex-row items-center justify-start gap-4 border-b pb-4 w-full"
+        :style="{ borderBottom: `1px solid ${theme.accent}` }"
       >
-        <div class="h-2 w-8 rounded bg-[#2E614F]"></div>
-        <div class="text-[#000000] font-newedge pt-1 font-medium">Time Per Session</div>
+        <div class="h-2 w-8 rounded" :style="{ backgroundColor: theme.secondary }"></div>
+        <div class="font-newedge pt-1 font-medium" :style="{ color: theme.text }">
+          Time Per Session
+        </div>
       </div>
       <div class="flex flex-row items-center justify-start gap-4">
-        <div class="h-2 w-8 rounded bg-[#6D9A7A]"></div>
-        <div class="text-[#000000] font-newedge pt-1 font-medium">Scroll Rate</div>
+        <div class="h-2 w-8 rounded" :style="{ backgroundColor: theme.tertiary }"></div>
+        <div class="font-newedge pt-1 font-medium" :style="{ color: theme.text }">Scroll Rate</div>
       </div>
     </div>
     <div
-      class="w-full bg-white rounded-xl shadow-sm p-6 h-auto md:w-2/3 mt-10 md:mt-0 border border-[#E9F5E4] flex flex-col gap-10 justify-center pt-16 pb-12"
+      class="w-full bg-white rounded-xl shadow-sm p-6 h-auto md:w-2/3 mt-10 md:mt-0 border flex flex-col gap-10 justify-center pt-16 pb-12"
+      :style="{ border: `1px solid ${theme.accent}` }"
     >
       <div class="flex flex-row gap-8">
         <MiniBarChart
@@ -29,9 +36,9 @@
           :colors="labelColors"
           :label="item.label"
           :display="item.display"
-          labelColor="#2E614F"
-          valueColor="#2E614F"
-          metricLabelColor="#ADD2A5"
+          :labelColor="theme.text"
+          :valueColor="theme.text"
+          :metricLabelColor="theme.text"
         />
       </div>
     </div>
@@ -39,16 +46,24 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, watch } from 'vue'
+import { ref, onMounted, watch, computed } from 'vue'
 import { useGlobalFiltersStore } from '@/stores/globalFilters'
 import { supabase } from '@/lib/supabase'
 import MiniBarChart from '@/components/charts/MiniBarChart.vue'
+import { getPageTheme, getChartColors } from '@/config/theme'
 
 const globalFilters = useGlobalFiltersStore()
+const theme = computed(() => getPageTheme('engagement'))
+const chartColors = computed(() => getChartColors('engagement'))
+
 type Triple = [number, number, number]
 type BarItem = { label: string; values: Triple; display: (v: number) => string }
 
-const labelColors: [string, string, string] = ['#C1E3B1', '#2E614F', '#6D9A7A']
+const labelColors = computed<[string, string, string]>(() => [
+  chartColors.value.primary,
+  chartColors.value.secondary,
+  chartColors.value.tertiary,
+])
 const barData = ref<BarItem[]>([
   {
     label: 'Pageviews per Session',

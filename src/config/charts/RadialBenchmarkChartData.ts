@@ -5,21 +5,37 @@ export interface RadialBenchmarkChartData {
   colors: string[]
 }
 
+import { getChartColors } from '@/config/theme'
+
+const engagementChartColors = getChartColors('engagement')
+
 export const radialBenchmarkChartData: Record<string, RadialBenchmarkChartData> = {
   overall: {
     label: 'Overall',
     values: [168, 125, 85],
-    colors: ['#C1E3B1', '#2E614F', '#6D9A7A'],
+    colors: [
+      engagementChartColors.primary,
+      engagementChartColors.secondary,
+      engagementChartColors.tertiary,
+    ],
   },
   newVisitors: {
     label: 'New Visitors',
     values: [155, 115, 95],
-    colors: ['#C1E3B1', '#2E614F', '#6D9A7A'],
+    colors: [
+      engagementChartColors.primary,
+      engagementChartColors.secondary,
+      engagementChartColors.tertiary,
+    ],
   },
   returningVisitors: {
     label: 'Returning Visitors',
     values: [178, 135, 105],
-    colors: ['#C1E3B1', '#2E614F', '#6D9A7A'],
+    colors: [
+      engagementChartColors.primary,
+      engagementChartColors.secondary,
+      engagementChartColors.tertiary,
+    ],
   },
 }
 
@@ -41,17 +57,29 @@ export function randomizeRadialBenchmarkChartData(/* filters: { country, industr
     overall: {
       label: 'Overall',
       values: randomValues(80, 180),
-      colors: ['#C1E3B1', '#2E614F', '#6D9A7A'],
+      colors: [
+        engagementChartColors.primary,
+        engagementChartColors.secondary,
+        engagementChartColors.tertiary,
+      ],
     },
     newVisitors: {
       label: 'New Visitors',
       values: randomValues(80, 180),
-      colors: ['#C1E3B1', '#2E614F', '#6D9A7A'],
+      colors: [
+        engagementChartColors.primary,
+        engagementChartColors.secondary,
+        engagementChartColors.tertiary,
+      ],
     },
     returningVisitors: {
       label: 'Returning Visitors',
       values: randomValues(80, 180),
-      colors: ['#C1E3B1', '#2E614F', '#6D9A7A'],
+      colors: [
+        engagementChartColors.primary,
+        engagementChartColors.secondary,
+        engagementChartColors.tertiary,
+      ],
     },
   }
 }

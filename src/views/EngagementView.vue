@@ -8,12 +8,12 @@
       />
     </transition>
 
-    <!-- Engagement Section avec fond violet très clair -->
-    <section class="bg-[#F9FFF6] reveal-up">
+    <!-- Engagement Section avec fond du thème -->
+    <section class="reveal-up">
       <div class="max-w-7xl mx-auto px-8 py-12">
         <div class="flex flex-col md:flex-row md:items-center md:justify-between mb-4">
           <div class="flex flex-col">
-            <h3 class="text-3xl font-newedge text-[#2E614F]">Engagement</h3>
+            <h3 class="text-3xl font-newedge" :style="{ color: theme.primary }">Engagement</h3>
             <span class="text-gray-600 font-normal pt-1"
               >Compare performance with benchmarks from all industries
               <strong>{{ globalFilters.selectedIndustry?.toLowerCase() }}</strong>
@@ -21,40 +21,46 @@
           </div>
         </div>
         <span
-          class="bg-[#C1E3B1] text-[#2E614F] px-2 py-1 rounded-xl text-sm font-semibold inline-block mt-4"
+          class="px-2 py-1 rounded text-sm font-semibold inline-block mt-4"
+          :style="{ backgroundColor: theme.background, color: theme.primary }"
           >Overview</span
         >
         <EngagementOverview ref="engagementOverviewRef" />
         <!-- Benchmark Bloc -->
         <span
-          class="bg-[#C1E3B1] text-[#2E614F] px-2 py-1 rounded-xl text-sm font-semibold mt-4 inline-block reveal-up"
+          class="px-2 py-1 rounded-xl text-sm font-semibold mt-4 inline-block reveal-up"
+          :style="{ backgroundColor: theme.background, color: theme.primary }"
           >Benchmark</span
         >
         <EngagementBenchmark ref="engagementBenchmarkRef" />
 
         <!-- Radial Benchmark Chart Section -->
         <span
-          class="bg-[#C1E3B1] text-[#2E614F] px-2 py-1 rounded-xl text-sm font-semibold inline-block mt-4 mb-2"
+          class="px-2 py-1 rounded-xl text-sm font-semibold inline-block mt-4 mb-2"
+          :style="{ backgroundColor: theme.background, color: theme.primary }"
           >Time spent per Session</span
         >
         <EngagementTimeSpent ref="engagementTimeSpentRef" />
 
         <!-- Stacked Bar Benchmark Chart Section -->
         <span
-          class="bg-[#C1E3B1] text-[#2E614F] px-2 py-1 rounded-xl text-sm font-semibold inline-block mt-4 mb-2"
+          class="px-2 py-1 rounded-xl text-sm font-semibold inline-block mt-4 mb-2"
+          :style="{ backgroundColor: theme.background, color: theme.primary }"
           >Scroll Rate Benchmark</span
         >
         <EngagementScrollRate ref="engagementScrollRateRef" />
 
         <span
-          class="bg-[#C1E3B1] text-[#2E614F] px-2 py-1 rounded-xl text-sm font-semibold inline-block mt-4 mb-2"
+          class="px-2 py-1 rounded-xl text-sm font-semibold inline-block mt-4 mb-2"
+          :style="{ backgroundColor: theme.background, color: theme.primary }"
           >Activity Rate Benchmark</span
         >
         <EngagementActivityRate ref="engagementActivityRateRef" />
 
         <!-- Page Level Benchmark Section -->
         <span
-          class="bg-[#C1E3B1] text-[#2E614F] px-2 py-1 rounded-xl text-sm font-semibold inline-block mt-4"
+          class="px-2 py-1 rounded-xl text-sm font-semibold inline-block mt-4"
+          :style="{ backgroundColor: theme.background, color: theme.primary }"
           >Page Level Benchmark</span
         >
         <EngagementPageLevel ref="engagementPageLevelRef" />
@@ -78,10 +84,13 @@ import { ref, computed, watch, onMounted } from 'vue'
 import { useEngagementDataStore } from '@/stores/engagementData'
 import { useGlobalFiltersStore } from '@/stores/globalFilters'
 import { useRoute } from 'vue-router'
+import { getPageTheme } from '@/config/theme'
 
 const engagementStore = useEngagementDataStore()
 const globalFilters = useGlobalFiltersStore()
 const route = useRoute()
+
+const theme = computed(() => getPageTheme('engagement'))
 
 // Refs pour les composants
 const engagementOverviewRef = ref()

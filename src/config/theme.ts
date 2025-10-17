@@ -2,6 +2,7 @@
 export interface PageTheme {
   primary: string
   secondary: string
+  tertiary: string
   accent: string
   background: string
   text: string
@@ -17,9 +18,10 @@ export const pageThemes: Record<string, PageTheme> = {
   traffic: {
     primary: '#7c0033',
     secondary: '#cd3246',
+    tertiary: '#ffe3e3',
     accent: '#ffe3e3',
     background: '#ffbdbd',
-    text: '#440220',
+    text: '#000000',
     gradient: {
       from: '#8D0A38',
       to: '#A31242',
@@ -28,10 +30,11 @@ export const pageThemes: Record<string, PageTheme> = {
     },
   },
   engagement: {
-    primary: '#2E614F',
-    secondary: '#6D9A7A',
-    accent: '#C1E3B1',
-    background: '#F9FFF6',
+    primary: '#004c3d',
+    secondary: '#00844e',
+    tertiary: '#d3ffb6',
+    accent: '#a6ef7b',
+    background: '#f2ffe6',
     text: '#000000',
     gradient: {
       from: '#2E614F',
@@ -43,6 +46,7 @@ export const pageThemes: Record<string, PageTheme> = {
   frustration: {
     primary: '#3737A2',
     secondary: '#AFAFF5',
+    tertiary: '#D5D6FB',
     accent: '#D5D6FB',
     background: '#F7F8FF',
     text: '#000000',
@@ -56,6 +60,7 @@ export const pageThemes: Record<string, PageTheme> = {
   conversion: {
     primary: '#32373A',
     secondary: '#626B76',
+    tertiary: '#32373A',
     accent: '#ECEDEF',
     background: '#EEEFF1',
     text: '#000000',
@@ -85,10 +90,10 @@ export const chartColors: Record<
     background: '#F7F9F9',
   },
   engagement: {
-    primary: '#C1E3B1',
-    secondary: '#6D9A7A',
-    tertiary: '#2E614F',
-    background: '#F9FFF6',
+    primary: '#004c3d',
+    secondary: '#00844e',
+    tertiary: '#d3ffb6',
+    background: '#f2ffe6',
   },
   frustration: {
     primary: '#3737A2',

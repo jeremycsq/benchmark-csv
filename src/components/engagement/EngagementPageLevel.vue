@@ -2,27 +2,29 @@
   <div class="flex flex-col md:flex-row mt-8 reveal-up">
     <div class="w-full md:w-1/3 flex flex-col items-start gap-4 justify-center">
       <div
-        class="flex flex-row items-center justify-start gap-4 border-b border-[#E9F5E4] pb-4 w-full"
+        class="flex flex-row items-center justify-start gap-4 border-b pb-4 w-full"
+        :style="{ borderColor: theme.accent }"
       >
-        <div class="text-[#000] font-newedge pt-1 font-medium">Page Type</div>
+        <div class="font-newedge pt-1 font-medium" :style="{ color: theme.text }">Page Type</div>
       </div>
     </div>
     <div
-      class="w-full bg-white rounded-xl shadow-sm p-4 h-auto md:w-2/3 mt-6 md:mt-0 border border-[#E9F5E4] flex flex-col gap-8 justify-center"
+      class="w-full bg-white rounded-xl shadow-sm p-4 h-auto md:w-2/3 mt-6 md:mt-0 flex flex-col gap-8 justify-center"
+      :style="{ border: `1px solid ${theme.accent}` }"
     >
       <div>
         <table class="min-w-full text-center">
           <thead>
-            <tr class="text-[#222] text-base">
-              <th class="py-2 px-2 text-left text-[#6D9A7A] text-xs">Page Type</th>
-              <th class="py-2 px-2 text-[#6D9A7A] text-xs">Landing Rate</th>
-              <th class="py-2 px-2 text-[#6D9A7A] text-xs">Bounce Rate</th>
-              <th class="py-2 px-2 text-[#6D9A7A] text-xs">Exit Rate</th>
-              <th class="py-2 px-2 text-[#6D9A7A] text-xs">Activity Rate</th>
-              <th class="py-2 px-2 text-[#6D9A7A] text-xs">PV Share</th>
+            <tr class="text-base" :style="{ color: theme.text }">
+              <th class="py-2 px-2 text-left text-xs" :style="{ color: theme.text }">Page Type</th>
+              <th class="py-2 px-2 text-xs" :style="{ color: theme.text }">Landing Rate</th>
+              <th class="py-2 px-2 text-xs" :style="{ color: theme.text }">Bounce Rate</th>
+              <th class="py-2 px-2 text-xs" :style="{ color: theme.text }">Exit Rate</th>
+              <th class="py-2 px-2 text-xs" :style="{ color: theme.text }">Activity Rate</th>
+              <th class="py-2 px-2 text-xs" :style="{ color: theme.text }">PV Share</th>
             </tr>
           </thead>
-          <tbody class="text-[#2E614F] text-lg">
+          <tbody class="text-lg">
             <tr>
               <td class="py-3 px-4 text-left text-sm rounded-l-2xl">
                 <span class="mr-2">🏠</span>Homepage
@@ -62,6 +64,10 @@
 
 <script setup lang="ts">
 import { ref } from 'vue'
+import { getPageTheme } from '@/config/theme'
+
+// Import du thème engagement
+const theme = getPageTheme('engagement')
 
 // Valeurs dynamiques pour le tableau Page Level Benchmark
 const benchmarkTableData = ref({

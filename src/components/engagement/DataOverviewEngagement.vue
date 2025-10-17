@@ -5,8 +5,8 @@
         {{ dynamicTitle }}
       </h2>
       <p class="text-center text-gray-800 mb-8">
-        Data covers same-site activity from Q4 2023 to Q4 2024. Scroll down to the methodology
-        section to see how we gathered this data.
+        Select filters to view traffic benchmarks for specific markets, industries, devices, and
+        audiences.
       </p>
       <div class="flex justify-start items-start gap-8 mb-8 w-full">
         <!-- Labels verticaux -->
@@ -23,10 +23,7 @@
           </div>
         </div>
         <!-- Blocs metrics -->
-        <div
-          class="flex flex-col gap-8 w-full"
-          :style="{ '--border-color': pageConfig.titleColor }"
-        >
+        <div class="flex flex-col gap-8 w-full" :style="{ '--border-color': theme.primary }">
           <!-- Ligne YoY -->
           <div class="flex items-center w-full">
             <template v-for="(metric, index) in pageConfig.yoyMetrics" :key="`yoy-${index}`">
@@ -38,7 +35,7 @@
                   'border-r-gradient': index < pageConfig.yoyMetrics.length - 1,
                   'border-l-gradient': index > 0,
                 }"
-                :style="{ borderColor: pageConfig.titleColor }"
+                :style="{ borderColor: theme.primary }"
               >
                 <div
                   v-if="!isLoading"
@@ -101,14 +98,14 @@
                 <!-- Shape du haut (U inversé) -->
                 <div
                   class="w-4 h-8 border-l border-r border-b rounded-b-full bg-white z-20"
-                  :style="{ borderColor: pageConfig.titleColor }"
+                  :style="{ borderColor: theme.primary }"
                 ></div>
                 <!-- Barre de connexion horizontale -->
                 <div class="w-4 h-2 bg-white z-20"></div>
                 <!-- Shape du bas (U normal) -->
                 <div
                   class="w-4 h-8 border-l border-r border-t rounded-t-full bg-white z-20"
-                  :style="{ borderColor: pageConfig.titleColor }"
+                  :style="{ borderColor: theme.primary }"
                 ></div>
               </div>
             </template>
@@ -125,7 +122,7 @@
                   'border-r-gradient': index < pageConfig.momMetrics.length - 1,
                   'border-l-gradient': index > 0,
                 }"
-                :style="{ borderColor: pageConfig.titleColor }"
+                :style="{ borderColor: theme.primary }"
               >
                 <div
                   v-if="!isLoading"
@@ -188,14 +185,14 @@
                 <!-- Shape du haut (U inversé) -->
                 <div
                   class="w-4 h-8 border-l border-r border-b rounded-b-full bg-white z-20"
-                  :style="{ borderColor: pageConfig.titleColor }"
+                  :style="{ borderColor: theme.primary }"
                 ></div>
                 <!-- Barre de connexion horizontale -->
                 <div class="w-4 h-2 bg-white z-20"></div>
                 <!-- Shape du bas (U normal) -->
                 <div
                   class="w-4 h-8 border-l border-r border-t rounded-t-full bg-white z-20"
-                  :style="{ borderColor: pageConfig.titleColor }"
+                  :style="{ borderColor: theme.primary }"
                 ></div>
               </div>
             </template>

@@ -122,7 +122,8 @@ const createChart = () => {
             },
             maxRotation: 0,
             minRotation: 0,
-            autoSkip: false,
+            autoSkip: true,
+            maxTicksLimit: 12,
             callback: (_value, index) => {
               const labels = props.data?.labels ?? []
               const label = labels[index as number]

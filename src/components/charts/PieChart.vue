@@ -9,10 +9,13 @@
         :key="label"
         class="flex items-center justify-center gap-2 flex-1 min-w-0"
       >
-        <span class="w-4 h-4 rounded-full block" :style="{ background: colors[i] }"></span>
-        <span class="text-xs text-center" :style="{ color: labelColor || '#000' }"
-          >{{ label }} : {{ values[i].toFixed(1) }}%</span
-        >
+        <div class="flex flex-col items-center leading-tight gap-2">
+          <span class="w-4 h-4 rounded-full block" :style="{ background: colors[i] }"></span>
+          <span class="text-xs" :style="{ color: labelColor || '#000' }">{{ label }}</span>
+          <span class="text-xs" :style="{ color: labelColor || '#000' }"
+            >{{ values[i].toFixed(1) }}%</span
+          >
+        </div>
       </div>
     </div>
   </div>
